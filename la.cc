@@ -46,4 +46,18 @@ namespace la {
         return sum;
     }
 
+    void iadd(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v)
+    {
+        for (int i = 0; i < u.size(); ++i) {
+            iadd(u[i], v[i]);
+        }
+    }
+
+    void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v)
+    {
+        for (int i = 0; i < u.size(); ++i) {
+            isub(u[i], v[i]);
+        }
+    }
+
 }

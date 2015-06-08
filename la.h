@@ -13,6 +13,9 @@ namespace la {
     void idiv(std::vector<double>& u, std::vector<double> const& v);
 
     double dot(std::vector<double> const& u, std::vector<double> const& v);
+
+    void iadd(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
+    void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
 }
 
 #endif
