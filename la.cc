@@ -1,4 +1,5 @@
 #include "la/la.h"
+#include <cmath>
 
 namespace la {
 
@@ -58,6 +59,17 @@ namespace la {
         for (int i = 0; i < u.size(); ++i) {
             isub(u[i], v[i]);
         }
+    }
+
+    double norm(std::vector<double> const& v)
+    {
+        double sum = 0;
+
+        for (int i = 0; i < v.size(); ++i) {
+            sum += v[i] * v[i];
+        }
+
+        return std::sqrt(sum);
     }
 
 }

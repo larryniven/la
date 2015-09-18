@@ -16,6 +16,8 @@ namespace la {
 
     void iadd(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
     void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
+
+    double norm(std::vector<double> const& v);
 }
 
 #endif
