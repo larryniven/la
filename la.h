@@ -18,6 +18,14 @@ namespace la {
     void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
 
     double norm(std::vector<double> const& v);
+
+    std::vector<double> logistic(std::vector<double> const& v);
+
+    std::vector<double> add(std::vector<double> const& u,
+        std::vector<double> const& v);
+
+    std::vector<double> mult(std::vector<std::vector<double>> const& a,
+        std::vector<double> const& v);
 }
 
 #endif
