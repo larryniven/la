@@ -26,6 +26,9 @@ namespace la {
 
     std::vector<double> mult(std::vector<std::vector<double>> const& a,
         std::vector<double> const& v);
+
+    std::vector<double> dyadic_prod(std::vector<double> const& a,
+        std::vector<double> const& b);
 }
 
 #endif

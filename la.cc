@@ -133,4 +133,20 @@ namespace la {
         return result;
     }
 
+    std::vector<double> dyadic_prod(std::vector<double> const& a,
+        std::vector<double> const& b)
+    {
+        std::vector<double> result;
+
+        result.resize(a.size() * b.size());
+
+        for (int i = 0; i < a.size(); ++i) {
+            for (int j = 0; j < b.size(); ++j) {
+                result[i * a.size() + j] = a[i] * b[j];
+            }
+        }
+
+        return result;
+    }
+
 }
