@@ -4,149 +4,166 @@
 
 namespace la {
 
-    void imul(std::vector<double>& u, double d)
+    void imul(vector<double>& u, double d)
     {
         for (int i = 0; i < u.size(); ++i) {
-            u[i] *= d;
+            u(i) *= d;
         }
     }
 
-    void iadd(std::vector<double>& u, std::vector<double> const& v)
+    void iadd(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
         for (int i = 0; i < v.size(); ++i) {
-            u[i] += v[i];
+            u(i) += v(i);
         }
     }
 
-    void isub(std::vector<double>& u, std::vector<double> const& v)
+    void isub(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
         for (int i = 0; i < v.size(); ++i) {
-            u[i] -= v[i];
+            u(i) -= v(i);
         }
     }
 
-    void imul(std::vector<double>& u, std::vector<double> const& v)
+    void imul(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
         for (int i = 0; i < v.size(); ++i) {
-            u[i] *= v[i];
+            u(i) *= v(i);
         }
     }
 
-    void idiv(std::vector<double>& u, std::vector<double> const& v)
+    void idiv(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
         for (int i = 0; i < v.size(); ++i) {
-            u[i] /= v[i];
+            u(i) /= v(i);
         }
     }
 
-    double dot(std::vector<double> const& u, std::vector<double> const& v)
+    vector<double> add(
+        vector<double> const& u,
+        vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        double sum = 0;
-        for (int i = 0; i < u.size(); ++i) {
-            sum += u[i] * v[i];
-        }
-        return sum;
-    }
-
-    void iadd(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v)
-    {
-        assert(u.size() == v.size());
+        vector<double> result;
+        result.resize(u.size());
 
         for (int i = 0; i < u.size(); ++i) {
-            iadd(u[i], v[i]);
+            result(i) = u(i) + v(i);
         }
+
+        return result;
     }
 
-    void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v)
-    {
-        assert(u.size() == v.size());
-
-        for (int i = 0; i < u.size(); ++i) {
-            isub(u[i], v[i]);
-        }
-    }
-
-    double norm(std::vector<double> const& v)
+    double norm(vector<double> const& v)
     {
         double sum = 0;
 
         for (int i = 0; i < v.size(); ++i) {
-            sum += v[i] * v[i];
+            sum += v(i) * v(i);
         }
 
         return std::sqrt(sum);
     }
 
-    std::vector<double> logistic(std::vector<double> const& v)
-    {
-        std::vector<double> result;
-        result.resize(v.size());
-
-        for (int i = 0; i < v.size(); ++i) {
-            result[i] = 1 / (1 + std::exp(-v[i]));
-        }
-
-        return result;
-    }
-
-    std::vector<double> add(
-        std::vector<double> const& u,
-        std::vector<double> const& v)
+    double dot(vector<double> const& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        std::vector<double> result;
-        result.resize(u.size());
-
+        double sum = 0;
         for (int i = 0; i < u.size(); ++i) {
-            result[i] = u[i] + v[i];
+            sum += u(i) * v(i);
+        }
+        return sum;
+    }
+
+    vector<double> logistic(vector<double> const& v)
+    {
+        vector<double> result;
+        result.resize(v.size());
+
+        for (int i = 0; i < v.size(); ++i) {
+            result(i) = 1 / (1 + std::exp(-v(i)));
         }
 
         return result;
     }
 
-    std::vector<double> mult(
-        std::vector<std::vector<double>> const& u,
-        std::vector<double> const& v)
+    void iadd(matrix<double>& u, matrix<double> const& v)
     {
-        std::vector<double> result;
-        result.resize(u.size());
+        assert(u.rows() == v.rows());
+        assert(u.cols() == v.cols());
 
-        for (int i = 0; i < u.size(); ++i) {
-            assert(u[i].size() == v.size());
-
-            for (int j = 0; j < v.size(); ++j) {
-                result[i] += u[i][j] * v[j];
+        for (int i = 0; i < u.rows(); ++i) {
+            for (int j = 0; j < u.cols(); ++j) {
+                u(i, j) += v(i, j);
             }
         }
+    }
+
+    void isub(matrix<double>& u, matrix<double> const& v)
+    {
+        assert(u.rows() == v.rows());
+        assert(u.cols() == v.cols());
+
+        for (int i = 0; i < u.rows(); ++i) {
+            for (int j = 0; j < u.cols(); ++j) {
+                u(i, j) -= v(i, j);
+            }
+        }
+    }
+
+    vector<double> mult(
+        matrix<double> const& u,
+        vector<double> const& v)
+    {
+        vector<double> result;
+        result.resize(u.rows());
+
+        raw::mult(result, u, v);
 
         return result;
     }
 
-    std::vector<double> dyadic_prod(std::vector<double> const& a,
-        std::vector<double> const& b)
+    vector<double> dyadic_prod(vector<double> const& a,
+        vector<double> const& b)
     {
-        std::vector<double> result;
+        vector<double> result;
 
         result.resize(a.size() * b.size());
 
         for (int i = 0; i < a.size(); ++i) {
             for (int j = 0; j < b.size(); ++j) {
-                result[i * a.size() + j] = a[i] * b[j];
+                result(i * a.size() + j) = a(i) * b(j);
             }
         }
 
         return result;
+    }
+
+    namespace raw {
+
+        void mult(vector<double>& result,
+            matrix<double> const& a,
+            vector<double> const& v)
+        {
+            assert(a.cols() == v.size());
+
+            for (int i = 0; i < a.rows(); ++i) {
+                for (int j = 0; j < v.size(); ++j) {
+                    result(i) += a(i, j) * v(j);
+                }
+            }
+        }
+
     }
 
 }

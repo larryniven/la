@@ -5,30 +5,142 @@
 
 namespace la {
 
-    void imul(std::vector<double>& u, double d);
+    template <class T>
+    struct vector {
 
-    void iadd(std::vector<double>& u, std::vector<double> const& v);
-    void isub(std::vector<double>& u, std::vector<double> const& v);
-    void imul(std::vector<double>& u, std::vector<double> const& v);
-    void idiv(std::vector<double>& u, std::vector<double> const& v);
+        T* data()
+        {
+            return vec_.data();
+        }
 
-    double dot(std::vector<double> const& u, std::vector<double> const& v);
+        T const* data() const
+        {
+            return vec_.data();
+        }
 
-    void iadd(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
-    void isub(std::vector<std::vector<double>>& u, std::vector<std::vector<double>> const& v);
+        unsigned int size() const
+        {
+            return vec_.size();
+        }
+
+        void resize(unsigned int size, T value = 0)
+        {
+            return vec_.resize(size, value);
+        }
+
+        T& operator()(int i)
+        {
+            return vec_[i];
+        }
+
+        T const& operator()(int i) const
+        {
+            return vec_[i];
+        }
+
+        T& at(int i)
+        {
+            return vec_.at(i);
+        }
+
+        T const& at(int i) const
+        {
+            return vec_.at(i);
+        }
+
+    private:
+        std::vector<T> vec_;
+
+    };
+
+    template <class T>
+    struct matrix {
+
+        T* data()
+        {
+            return vec_.data();
+        }
+
+        T const* data() const
+        {
+            return vec_.data();
+        }
+
+        unsigned int rows() const
+        {
+            return rows_;
+        }
+
+        unsigned int cols() const
+        {
+            return cols_;
+        }
+
+        void resize(int rows, int cols, T value = 0)
+        {
+            vec_.resize(rows * cols, value);
+            rows_ = rows;
+            cols_ = cols;
+        }
+
+        T& operator()(unsigned int r, unsigned int c)
+        {
+            return vec_[r * cols_ + c];
+        }
+
+        T const& operator()(unsigned int r, unsigned int c) const
+        {
+            return vec_[r * cols_ + c];
+        }
+
+        T& at(unsigned int r, unsigned int c)
+        {
+            return vec_.at(r * cols_ + c);
+        }
+
+        T const& at(unsigned int r, unsigned int c) const
+        {
+            return vec_.at(r * cols_ + c);
+        }
+
+    private:
+        std::vector<T> vec_;
+        unsigned int rows_;
+        unsigned int cols_;
+    };
+
+    void imul(vector<double>& u, double d);
+
+    void iadd(vector<double>& u, vector<double> const& v);
+    void isub(vector<double>& u, vector<double> const& v);
+    void imul(vector<double>& u, vector<double> const& v);
+    void idiv(vector<double>& u, vector<double> const& v);
+
+    vector<double> add(vector<double> const& u,
+        vector<double> const& v);
 
     double norm(std::vector<double> const& v);
 
-    std::vector<double> logistic(std::vector<double> const& v);
+    double dot(vector<double> const& u, vector<double> const& v);
 
-    std::vector<double> add(std::vector<double> const& u,
-        std::vector<double> const& v);
+    vector<double> logistic(vector<double> const& v);
 
-    std::vector<double> mult(std::vector<std::vector<double>> const& a,
-        std::vector<double> const& v);
+    void iadd(matrix<double>& u, matrix<double> const& v);
+    void isub(matrix<double>& u, matrix<double> const& v);
 
-    std::vector<double> dyadic_prod(std::vector<double> const& a,
-        std::vector<double> const& b);
+    vector<double> mult(matrix<double> const& a,
+        vector<double> const& v);
+
+    vector<double> dyadic_prod(vector<double> const& a,
+        vector<double> const& b);
+
+    namespace raw {
+
+        void mult(vector<double>& result,
+            matrix<double> const& a,
+            vector<double> const& v);
+
+    }
 }
 
 #endif
