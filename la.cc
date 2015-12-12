@@ -1,4 +1,5 @@
 #include "la/la.h"
+#include <cblas.h>
 #include <cmath>
 #include <cassert>
 
@@ -6,9 +7,7 @@ namespace la {
 
     void imul(vector<double>& u, double d)
     {
-        for (int i = 0; i < u.size(); ++i) {
-            u(i) *= d;
-        }
+        cblas_dscal(u.size(), d, u.data(), 1);
     }
 
     void iadd(vector<double>& u, vector<double> const& v)
@@ -128,7 +127,8 @@ namespace la {
         vector<double> result;
         result.resize(u.rows());
 
-        raw::mult(result, u, v);
+        cblas_dgemv(CblasRowMajor, CblasNoTrans, u.rows(), u.cols(), 1, u.data(), u.cols(),
+            v.data(), 1, 1, result.data(), 1);
 
         return result;
     }
@@ -148,22 +148,4 @@ namespace la {
 
         return result;
     }
-
-    namespace raw {
-
-        void mult(vector<double>& result,
-            matrix<double> const& a,
-            vector<double> const& v)
-        {
-            assert(a.cols() == v.size());
-
-            for (int i = 0; i < a.rows(); ++i) {
-                for (int j = 0; j < v.size(); ++j) {
-                    result(i) += a(i, j) * v(j);
-                }
-            }
-        }
-
-    }
-
 }
