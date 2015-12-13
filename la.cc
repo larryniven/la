@@ -14,18 +14,14 @@ namespace la {
     {
         assert(u.size() == v.size());
 
-        for (int i = 0; i < v.size(); ++i) {
-            u(i) += v(i);
-        }
+        cblas_daxpy(u.size(), 1, v.data(), 1, u.data(), 1);
     }
 
     void isub(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        for (int i = 0; i < v.size(); ++i) {
-            u(i) -= v(i);
-        }
+        cblas_daxpy(u.size(), -1, v.data(), 1, u.data(), 1);
     }
 
     void imul(vector<double>& u, vector<double> const& v)
@@ -47,41 +43,23 @@ namespace la {
     }
 
     vector<double> add(
-        vector<double> const& u,
+        vector<double> u,
         vector<double> const& v)
     {
-        assert(u.size() == v.size());
-
-        vector<double> result;
-        result.resize(u.size());
-
-        for (int i = 0; i < u.size(); ++i) {
-            result(i) = u(i) + v(i);
-        }
-
-        return result;
+        iadd(u, v);
+        return u;
     }
 
     double norm(vector<double> const& v)
     {
-        double sum = 0;
-
-        for (int i = 0; i < v.size(); ++i) {
-            sum += v(i) * v(i);
-        }
-
-        return std::sqrt(sum);
+        return cblas_dnrm2(v.size(), v.data(), 1);
     }
 
     double dot(vector<double> const& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        double sum = 0;
-        for (int i = 0; i < u.size(); ++i) {
-            sum += u(i) * v(i);
-        }
-        return sum;
+        return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
     }
 
     vector<double> logistic(vector<double> const& v)

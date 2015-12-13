@@ -116,7 +116,7 @@ namespace la {
     void imul(vector<double>& u, vector<double> const& v);
     void idiv(vector<double>& u, vector<double> const& v);
 
-    vector<double> add(vector<double> const& u,
+    vector<double> add(vector<double> u,
         vector<double> const& v);
 
     double norm(std::vector<double> const& v);
