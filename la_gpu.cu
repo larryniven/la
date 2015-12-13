@@ -1,15 +1,16 @@
-#include "la/la.h"
-#include <cblas.h>
+#include "la/la_gpu.h"
 #include <cmath>
 #include <cassert>
+#include <cublas_v2.h>
+#include <cblas.h>
 
-namespace la {
+namespace la_gpu {
 
     device device::d = device();
 
     device::device()
     {
-        cublasCreate(handle);
+        cublasCreate(&handle);
     }
 
     device::~device()
@@ -22,23 +23,30 @@ namespace la {
         return d;
     }
 
+    cublasHandle_t& device::get_handle()
+    {
+        return get_instance().handle;
+    }
+
     void imul(vector<double>& u, double d)
     {
-        cblas_dscal(u.size(), d, u.data(), 1);
+        cublasDscal(device::get_handle(), u.size(), &d, u.data(), 1);
     }
 
     void iadd(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        cblas_daxpy(u.size(), 1, v.data(), 1, u.data(), 1);
+        double alpha = 1;
+        cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
     }
 
     void isub(vector<double>& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        cblas_daxpy(u.size(), -1, v.data(), 1, u.data(), 1);
+        double alpha = -1;
+        cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
     }
 
     void imul(vector<double>& u, vector<double> const& v)
@@ -69,14 +77,18 @@ namespace la {
 
     double norm(vector<double> const& v)
     {
-        return cblas_dnrm2(v.size(), v.data(), 1);
+        double result = 0;
+        cublasDnrm2(device::get_handle(), v.size(), v.data(), 1, &result);
+        return result;
     }
 
     double dot(vector<double> const& u, vector<double> const& v)
     {
         assert(u.size() == v.size());
 
-        return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
+        double result = 0;
+        cublasDdot(device::get_handle(), u.size(), u.data(), 1, v.data(), 1, &result);
+        return result;
     }
 
     vector<double> logistic(vector<double> const& v)
@@ -122,8 +134,11 @@ namespace la {
         vector<double> result;
         result.resize(u.rows());
 
-        cblas_dgemv(CblasRowMajor, CblasNoTrans, u.rows(), u.cols(), 1, u.data(), u.cols(),
-            v.data(), 1, 1, result.data(), 1);
+        double alpha = 1;
+        double beta = 1;
+        cublasDgemv(device::get_handle(), CUBLAS_OP_N,
+            u.rows(), u.cols(), &alpha, u.data(), u.cols(),
+            v.data(), 1, &beta, result.data(), 1);
 
         return result;
     }
