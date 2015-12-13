@@ -9,3 +9,8 @@ clean:
 
 libla.a: la.o
 	$(AR) rcs $@ $^
+
+ifdef USE_GPU
+la.o: la.cu
+	nvcc -std=c++11 -c la.cu
+endif

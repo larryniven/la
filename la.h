@@ -1,9 +1,26 @@
 #ifndef LA_H
 #define LA_H
 
+#if USE_GPU
+#include <cublas_v2.h>
+#endif
+
 #include <vector>
 
 namespace la {
+
+    struct device {
+        static device d;
+
+        device();
+        ~device();
+
+#if USE_GPU
+        cublasHandle_t handle;
+#endif
+
+        static device& get_instance();
+    };
 
     template <class T>
     struct vector {

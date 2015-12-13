@@ -9,10 +9,12 @@ namespace la {
 
     device::device()
     {
+        cublasCreate(handle);
     }
 
     device::~device()
     {
+        cublasDestroy(handle);
     }
 
     device& device::get_instance()
