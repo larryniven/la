@@ -133,14 +133,6 @@ namespace la {
 
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b);
-
-    namespace raw {
-
-        void mult(vector<double>& result,
-            matrix<double> const& a,
-            vector<double> const& v);
-
-    }
 }
 
 #endif
