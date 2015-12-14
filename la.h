@@ -1,29 +1,19 @@
 #ifndef LA_H
 #define LA_H
 
-#if USE_GPU
-#include <cublas_v2.h>
-#endif
-
 #include <vector>
 
 namespace la {
 
-    struct device {
-        static device d;
-
-        device();
-        ~device();
-
-#if USE_GPU
-        cublasHandle_t handle;
-#endif
-
-        static device& get_instance();
-    };
-
     template <class T>
     struct vector {
+
+        vector()
+        {}
+
+        vector(std::initializer_list<T> const& list)
+            : vec_(list)
+        {}
 
         T* data()
         {
@@ -72,6 +62,18 @@ namespace la {
 
     template <class T>
     struct matrix {
+
+        matrix()
+        {}
+
+        matrix(std::initializer_list<std::initializer_list<T>> const& list)
+        {
+            rows_ = list.size();
+            for (auto& ell: list) {
+                cols_ = ell.size();
+                vec_.insert(vec_.end(), ell.begin(), ell.end());
+            }
+        }
 
         T* data()
         {

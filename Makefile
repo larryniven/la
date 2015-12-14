@@ -1,4 +1,4 @@
-CXXFLAGS += -std=c++11 -I ../ -lblas
+CXXFLAGS += -std=c++11 -I ../
 AR = gcc-ar
 
 all: libla.a
@@ -15,3 +15,6 @@ liblagpu.a: la_gpu.o
 
 la_gpu.o: la_gpu.cu
 	nvcc -std=c++11 -I ../ -c la_gpu.cu
+
+la.o: la.h
+

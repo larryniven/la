@@ -5,21 +5,6 @@
 
 namespace la {
 
-    device device::d = device();
-
-    device::device()
-    {
-    }
-
-    device::~device()
-    {
-    }
-
-    device& device::get_instance()
-    {
-        return d;
-    }
-
     void imul(vector<double>& u, double d)
     {
         cblas_dscal(u.size(), d, u.data(), 1);
