@@ -194,6 +194,9 @@ namespace la_gpu {
     vector<double> mult(matrix<double> const& a,
         vector<double> const& v);
 
+    vector<double> lmult(matrix<double> const& a,
+        vector<double> const& v);
+
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b);
 }

@@ -143,6 +143,22 @@ namespace la_gpu {
         return result;
     }
 
+    vector<double> lmult(
+        matrix<double> const& u,
+        vector<double> const& v)
+    {
+        vector<double> result;
+        result.resize(u.rows());
+
+        double alpha = 1;
+        double beta = 1;
+        cublasDgemv(device::get_handle(), CUBLAS_OP_T,
+            u.rows(), u.cols(), &alpha, u.data(), u.cols(),
+            v.data(), 1, &beta, result.data(), 1);
+
+        return result;
+    }
+
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b)
     {

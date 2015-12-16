@@ -6,6 +6,12 @@
 namespace la {
 
     template <class T>
+    struct vector;
+
+    template <class T>
+    vector<T> to_vector(std::vector<T> v);
+
+    template <class T>
     struct vector {
 
         vector()
@@ -55,10 +61,20 @@ namespace la {
             return vec_.at(i);
         }
 
+        friend vector to_vector<T>(std::vector<T> v);
+
     private:
         std::vector<T> vec_;
 
     };
+
+    template <class T>
+    vector<T> to_vector(std::vector<T> v)
+    {
+        vector<T> result;
+        result.vec_ = std::move(v);
+        return result;
+    }
 
     template <class T>
     struct matrix {
@@ -138,7 +154,7 @@ namespace la {
     vector<double> add(vector<double> u,
         vector<double> const& v);
 
-    double norm(std::vector<double> const& v);
+    double norm(vector<double> const& v);
 
     double dot(vector<double> const& u, vector<double> const& v);
 
@@ -148,6 +164,9 @@ namespace la {
     void isub(matrix<double>& u, matrix<double> const& v);
 
     vector<double> mult(matrix<double> const& a,
+        vector<double> const& v);
+
+    vector<double> lmult(matrix<double> const& a,
         vector<double> const& v);
 
     vector<double> dyadic_prod(vector<double> const& a,

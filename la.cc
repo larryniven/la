@@ -111,6 +111,19 @@ namespace la {
         return result;
     }
 
+    vector<double> lmult(
+        matrix<double> const& u,
+        vector<double> const& v)
+    {
+        vector<double> result;
+        result.resize(u.rows());
+
+        cblas_dgemv(CblasRowMajor, CblasTrans, u.rows(), u.cols(), 1, u.data(), u.cols(),
+            v.data(), 1, 1, result.data(), 1);
+
+        return result;
+    }
+
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b)
     {
