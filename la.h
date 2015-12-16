@@ -85,8 +85,8 @@ namespace la {
         matrix(std::initializer_list<std::initializer_list<T>> const& list)
         {
             rows_ = list.size();
+            cols_ = list.begin()->size();
             for (auto& ell: list) {
-                cols_ = ell.size();
                 vec_.insert(vec_.end(), ell.begin(), ell.end());
             }
         }
