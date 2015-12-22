@@ -5,7 +5,6 @@
 #include <cublas_v2.h>
 #include <vector>
 #include <cassert>
-#include <iostream>
 
 namespace la {
 
