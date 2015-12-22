@@ -77,6 +77,9 @@ namespace la {
     }
 
     template <class T>
+    struct matrix;
+
+    template <class T>
     struct matrix {
 
         matrix()
@@ -168,6 +171,21 @@ namespace la {
 
     vector<double> lmult(matrix<double> const& a,
         vector<double> const& v);
+
+    template <class T>
+    matrix<T> trans(matrix<T> const& m)
+    {
+        matrix<T> result;
+        result.resize(m.cols(), m.rows());
+
+        for (int i = 0; i < m.rows(); ++i) {
+            for (int j = 0; j < m.cols(); ++j) {
+                result(j, i) = m(i, j);
+            }
+        }
+
+        return result;
+    }
 
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b);

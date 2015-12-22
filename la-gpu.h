@@ -5,10 +5,14 @@
 #include <cublas_v2.h>
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 namespace la {
 
     namespace gpu {
+
+        __global__ void print_vec(double const *p, int size);
+        __global__ void print_mat(double const *p, int rows, int cols);
 
         struct device {
             static device d;
@@ -26,13 +30,14 @@ namespace la {
         struct vector {
 
             vector()
-                : data_(nullptr)
+                : data_(nullptr), size_(0)
             {}
 
             explicit vector(la::vector<T> const& v)
             {
                  cudaMalloc(&data_, sizeof(T) * v.size());
                  cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
+                 size_ = v.size();
             }
 
             vector(vector<T>&& v)
@@ -89,12 +94,11 @@ namespace la {
 
             void resize(unsigned int size, T value = 0)
             {
-                T* result;
-                cudaMalloc(&result, sizeof(T) * size);
-                cudaMemset(result, value, size_);
-                cudaMemcpy(result, data_, sizeof(T) * size_, cudaMemcpyDeviceToDevice);
                 cudaFree(data_);
-                data_ = result;
+                cudaMalloc(&data_, size * sizeof(T));
+                std::vector<T> v;
+                v.resize(size, value);
+                cublasSetVector(size, sizeof(T), v.data(), 1, data_, 1);
                 size_ = size;
             }
 
@@ -132,8 +136,13 @@ namespace la {
             {}
 
             matrix(la::matrix<T> const& m)
-                : vec_(la::to_vector(m.vec_))
-            {}
+            {
+                rows_ = m.rows();
+                cols_ = m.cols();
+                la::matrix<T> mT = la::trans(m);
+                vec_.resize(cols_ * rows_);
+                cublasSetMatrix(rows_, cols_, sizeof(T), mT.data(), rows_, vec_.data(), rows_);
+            }
 
             T* data()
             {
@@ -187,6 +196,24 @@ namespace la {
             unsigned int rows_;
             unsigned int cols_;
         };
+
+        template <class T>
+        la::vector<T> to_host(vector<T> const& v)
+        {
+            la::vector<T> result;
+            result.resize(v.size());
+            cublasGetVector(v.size(), sizeof(T), v.data(), 1, result.data(), 1);
+            return result;
+        }
+
+        template <class T>
+        la::matrix<T> to_host(matrix<T> const& m)
+        {
+            la::matrix<T> result;
+            result.resize(m.cols(), m.rows());
+            cublasGetMatrix(m.rows(), m.cols(), sizeof(T), m.data(), m.rows(), result.data(), m.rows()); 
+            return la::trans(result);
+        }
 
         void imul(vector<double>& u, double d);
 

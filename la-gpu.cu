@@ -8,6 +8,26 @@ namespace la {
 
     namespace gpu {
 
+        __global__ void print_vec(double const *p, int size)
+        {
+            for (int i = 0; i < size; ++i) {
+                printf("%f ", p[i]);
+            }
+            printf("\n");
+        }
+
+        __global__ void print_mat(double const *p, int rows, int cols)
+        {
+            printf("%d %d\n", rows, cols);
+        
+            for (int i = 0; i < rows; ++i) {
+                for (int j = 0; j < cols; ++j) {
+                    printf("%f ", p[j * rows + i]);
+                }
+                printf("\n");
+            }
+        }
+
         device device::d = device();
 
         device::device()
@@ -18,6 +38,7 @@ namespace la {
         device::~device()
         {
             cublasDestroy(handle);
+            cudaDeviceReset();
         }
 
         device& device::get_instance()
@@ -139,7 +160,7 @@ namespace la {
             double alpha = 1;
             double beta = 1;
             cublasDgemv(device::get_handle(), CUBLAS_OP_N,
-                u.rows(), u.cols(), &alpha, u.data(), u.cols(),
+                u.rows(), u.cols(), &alpha, u.data(), u.rows(),
                 v.data(), 1, &beta, result.data(), 1);
 
             return result;
@@ -150,12 +171,12 @@ namespace la {
             vector<double> const& v)
         {
             vector<double> result;
-            result.resize(u.rows());
+            result.resize(u.cols());
     
             double alpha = 1;
             double beta = 1;
             cublasDgemv(device::get_handle(), CUBLAS_OP_T,
-                u.rows(), u.cols(), &alpha, u.data(), u.cols(),
+                u.rows(), u.cols(), &alpha, u.data(), u.rows(),
                 v.data(), 1, &beta, result.data(), 1);
     
             return result;
