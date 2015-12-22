@@ -5,6 +5,7 @@
 #include <cublas_v2.h>
 #include <vector>
 #include <cassert>
+#include <thrust/tuple.h>
 
 namespace la {
 
@@ -28,100 +29,34 @@ namespace la {
         template <class T>
         struct vector {
 
-            vector()
-                : data_(nullptr), size_(0)
-            {}
+            vector();
+            explicit vector(la::vector<T> const& v);
+            vector(vector<T>&& v);
+            vector(vector<T> const& v);
 
-            explicit vector(la::vector<T> const& v)
-            {
-                 cudaMalloc(&data_, sizeof(T) * v.size());
-                 cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
-                 size_ = v.size();
-            }
+            vector<T>& operator=(vector<T> const& v);
+            vector<T>& operator=(vector<T>&& v);
 
-            vector(vector<T>&& v)
-            {
-                 data_ = v.data_;
-                 v.data_ = nullptr;
-                 size_ = v.size_;
-            }
+            ~vector();
 
-            vector(vector<T> const& v)
-            {
-                cudaMalloc(&data_, sizeof(T) * v.size());
-                cudaMemcpy(data_, v.data(), sizeof(T) * v.size(), cudaMemcpyDeviceToDevice);
-                size_ = v.size();
-            }
+            T* data();
+            T const* data() const;
 
-            vector<T>& operator=(vector<T> const& v)
-            {
-                cudaFree(data_);
-                cudaMalloc(&data_, sizeof(T) * v.size());
-                cudaMemcpy(data_, v.data(), sizeof(T) * v.size(), cudaMemcpyDeviceToDevice);
-                size_ = v.size();
-                return *this;
-            }
+            unsigned int size() const;
 
-            vector<T>& operator=(vector<T>&& v)
-            {
-                data_ = v.data_;
-                v.data_ = nullptr;
-                size_ = v.size_;
+            void resize(unsigned int size, T value = 0);
 
-                return *this;
-            }
+            T& operator()(int i);
+            T const& operator()(int i) const;
 
-            ~vector()
-            {
-                cudaFree(data_);
-            }
+            T& at(int i);
+            T const& at(int i) const;
 
-            T* data()
-            {
-                return data_;
-            }
+            T* begin();
+            T const* begin() const;
 
-            T const* data() const
-            {
-                return data_;
-            }
-
-            unsigned int size() const
-            {
-                return size_;
-            }
-
-            void resize(unsigned int size, T value = 0)
-            {
-                cudaFree(data_);
-                cudaMalloc(&data_, size * sizeof(T));
-                std::vector<T> v;
-                v.resize(size, value);
-                cublasSetVector(size, sizeof(T), v.data(), 1, data_, 1);
-                size_ = size;
-            }
-
-            T& operator()(int i)
-            {
-                return data_[i];
-            }
-
-            T const& operator()(int i) const
-            {
-                return data_[i];
-            }
-
-            T& at(int i)
-            {
-                assert(i < size_);
-                return data_[i];
-            }
-
-            T const& at(int i) const
-            {
-                assert(i < size_);
-                return data_[i];
-            }
+            T* end();
+            T const* end() const;
 
         private:
             T* data_;
@@ -131,64 +66,23 @@ namespace la {
         template <class T>
         struct matrix {
 
-            matrix()
-            {}
+            matrix();
+            explicit matrix(la::matrix<T> const& m);
 
-            matrix(la::matrix<T> const& m)
-            {
-                rows_ = m.rows();
-                cols_ = m.cols();
-                la::matrix<T> mT = la::trans(m);
-                vec_.resize(cols_ * rows_);
-                cublasSetMatrix(rows_, cols_, sizeof(T), mT.data(), rows_, vec_.data(), rows_);
-            }
+            T* data();
+            T const* data() const;
 
-            T* data()
-            {
-                return vec_.data();
-            }
+            unsigned int rows() const;
 
-            T const* data() const
-            {
-                return vec_.data();
-            }
+            unsigned int cols() const;
 
-            unsigned int rows() const
-            {
-                return rows_;
-            }
+            void resize(int rows, int cols, T value = 0);
 
-            unsigned int cols() const
-            {
-                return cols_;
-            }
+            T& operator()(unsigned int r, unsigned int c);
+            T const& operator()(unsigned int r, unsigned int c) const;
 
-            void resize(int rows, int cols, T value = 0)
-            {
-                vec_.resize(cols * rows, value);
-                rows_ = rows;
-                cols_ = cols;
-            }
-
-            T& operator()(unsigned int r, unsigned int c)
-            {
-                return vec_(c * rows_ + r);
-            }
-
-            T const& operator()(unsigned int r, unsigned int c) const
-            {
-                return vec_(c * rows_ + r);
-            }
-
-            T& at(unsigned int r, unsigned int c)
-            {
-                return vec_.at(c * rows_ + r);
-            }
-
-            T const& at(unsigned int r, unsigned int c) const
-            {
-                return vec_.at(c * rows_ + r);
-            }
+            T& at(unsigned int r, unsigned int c);
+            T const& at(unsigned int r, unsigned int c) const;
 
         private:
             vector<T> vec_;
@@ -197,22 +91,10 @@ namespace la {
         };
 
         template <class T>
-        la::vector<T> to_host(vector<T> const& v)
-        {
-            la::vector<T> result;
-            result.resize(v.size());
-            cublasGetVector(v.size(), sizeof(T), v.data(), 1, result.data(), 1);
-            return result;
-        }
+        la::vector<T> to_host(vector<T> const& v);
 
         template <class T>
-        la::matrix<T> to_host(matrix<T> const& m)
-        {
-            la::matrix<T> result;
-            result.resize(m.cols(), m.rows());
-            cublasGetMatrix(m.rows(), m.cols(), sizeof(T), m.data(), m.rows(), result.data(), m.rows()); 
-            return la::trans(result);
-        }
+        la::matrix<T> to_host(matrix<T> const& m);
 
         void imul(vector<double>& u, double d);
 
@@ -236,14 +118,32 @@ namespace la {
         vector<double> mult(matrix<double> const& a,
             vector<double> const& v);
 
-        vector<double> lmult(
-            matrix<double> const& u,
+        vector<double> lmult(matrix<double> const& u,
             vector<double> const& v);
 
         vector<double> dyadic_prod(vector<double> const& a,
             vector<double> const& b);
 
+        struct imul_op {
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const;
+        };
+
+        struct idiv_op {
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const;
+        };
+
+        struct ilogistic_op {
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const;
+        };
     }
 }
+
+#include "la-gpu-impl.h"
 
 #endif

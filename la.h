@@ -14,67 +14,27 @@ namespace la {
     template <class T>
     struct vector {
 
-        vector()
-        {}
+        vector();
+        vector(std::initializer_list<T> const& list);
 
-        vector(std::initializer_list<T> const& list)
-            : vec_(list)
-        {}
+        T* data();
+        T const* data() const;
 
-        T* data()
-        {
-            return vec_.data();
-        }
+        unsigned int size() const;
 
-        T const* data() const
-        {
-            return vec_.data();
-        }
+        void resize(unsigned int size, T value = 0);
 
-        unsigned int size() const
-        {
-            return vec_.size();
-        }
+        T& operator()(int i);
+        T const& operator()(int i) const;
 
-        void resize(unsigned int size, T value = 0)
-        {
-            return vec_.resize(size, value);
-        }
-
-        T& operator()(int i)
-        {
-            return vec_[i];
-        }
-
-        T const& operator()(int i) const
-        {
-            return vec_[i];
-        }
-
-        T& at(int i)
-        {
-            return vec_.at(i);
-        }
-
-        T const& at(int i) const
-        {
-            return vec_.at(i);
-        }
+        T& at(int i);
+        T const& at(int i) const;
 
         friend vector to_vector<T>(std::vector<T> v);
 
     private:
         std::vector<T> vec_;
-
     };
-
-    template <class T>
-    vector<T> to_vector(std::vector<T> v)
-    {
-        vector<T> result;
-        result.vec_ = std::move(v);
-        return result;
-    }
 
     template <class T>
     struct matrix;
@@ -82,64 +42,22 @@ namespace la {
     template <class T>
     struct matrix {
 
-        matrix()
-        {}
+        matrix();
+        matrix(std::initializer_list<std::initializer_list<T>> const& list);
 
-        matrix(std::initializer_list<std::initializer_list<T>> const& list)
-        {
-            rows_ = list.size();
-            cols_ = list.begin()->size();
-            for (auto& ell: list) {
-                vec_.insert(vec_.end(), ell.begin(), ell.end());
-            }
-        }
+        T* data();
+        T const* data() const;
 
-        T* data()
-        {
-            return vec_.data();
-        }
+        unsigned int rows() const;
+        unsigned int cols() const;
 
-        T const* data() const
-        {
-            return vec_.data();
-        }
+        void resize(int rows, int cols, T value = 0);
 
-        unsigned int rows() const
-        {
-            return rows_;
-        }
+        T& operator()(unsigned int r, unsigned int c);
+        T const& operator()(unsigned int r, unsigned int c) const;
 
-        unsigned int cols() const
-        {
-            return cols_;
-        }
-
-        void resize(int rows, int cols, T value = 0)
-        {
-            vec_.resize(rows * cols, value);
-            rows_ = rows;
-            cols_ = cols;
-        }
-
-        T& operator()(unsigned int r, unsigned int c)
-        {
-            return vec_[r * cols_ + c];
-        }
-
-        T const& operator()(unsigned int r, unsigned int c) const
-        {
-            return vec_[r * cols_ + c];
-        }
-
-        T& at(unsigned int r, unsigned int c)
-        {
-            return vec_.at(r * cols_ + c);
-        }
-
-        T const& at(unsigned int r, unsigned int c) const
-        {
-            return vec_.at(r * cols_ + c);
-        }
+        T& at(unsigned int r, unsigned int c);
+        T const& at(unsigned int r, unsigned int c) const;
 
     private:
         std::vector<T> vec_;
@@ -173,22 +91,12 @@ namespace la {
         vector<double> const& v);
 
     template <class T>
-    matrix<T> trans(matrix<T> const& m)
-    {
-        matrix<T> result;
-        result.resize(m.cols(), m.rows());
-
-        for (int i = 0; i < m.rows(); ++i) {
-            for (int j = 0; j < m.cols(); ++j) {
-                result(j, i) = m(i, j);
-            }
-        }
-
-        return result;
-    }
+    matrix<T> trans(matrix<T> const& m);
 
     vector<double> dyadic_prod(vector<double> const& a,
         vector<double> const& b);
 }
+
+#include "la-impl.h"
 
 #endif

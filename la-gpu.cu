@@ -3,6 +3,9 @@
 #include <cassert>
 #include <cublas_v2.h>
 #include <cblas.h>
+#include <thrust/device_ptr.h>
+#include <thrust/for_each.h>
+#include <thrust/iterator/zip_iterator.h>
 
 namespace la {
 
@@ -76,18 +79,24 @@ namespace la {
         {
             assert(u.size() == v.size());
 
-            for (int i = 0; i < v.size(); ++i) {
-                u(i) *= v(i);
-            }
+            thrust::for_each(
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(u.begin()), thrust::device_ptr<double const>(v.begin()))),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(u.end()), thrust::device_ptr<double const>(v.end()))),
+                imul_op());
         }
 
         void idiv(vector<double>& u, vector<double> const& v)
         {
             assert(u.size() == v.size());
 
-            for (int i = 0; i < v.size(); ++i) {
-                u(i) /= v(i);
-            }
+            thrust::for_each(
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(u.begin()), thrust::device_ptr<double const>(v.begin()))),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(u.end()), thrust::device_ptr<double const>(v.end()))),
+                idiv_op());
         }
 
         vector<double> add(
@@ -119,9 +128,12 @@ namespace la {
             vector<double> result;
             result.resize(v.size());
 
-            for (int i = 0; i < v.size(); ++i) {
-                result(i) = 1 / (1 + std::exp(-v(i)));
-            }
+            thrust::for_each(
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(result.begin()), thrust::device_ptr<double const>(v.begin()))),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(result.end()), thrust::device_ptr<double const>(v.end()))),
+                ilogistic_op());
 
             return result;
         }
@@ -131,11 +143,8 @@ namespace la {
             assert(u.rows() == v.rows());
             assert(u.cols() == v.cols());
 
-            for (int i = 0; i < u.rows(); ++i) {
-                for (int j = 0; j < u.cols(); ++j) {
-                    u(i, j) += v(i, j);
-                }
-            }
+            double alpha = 1;
+            cublasDaxpy(device::get_handle(), u.rows() * u.cols(), &alpha, v.data(), 1, u.data(), 1);
         }
 
         void isub(matrix<double>& u, matrix<double> const& v)
@@ -143,11 +152,8 @@ namespace la {
             assert(u.rows() == v.rows());
             assert(u.cols() == v.cols());
 
-            for (int i = 0; i < u.rows(); ++i) {
-                for (int j = 0; j < u.cols(); ++j) {
-                    u(i, j) -= v(i, j);
-                }
-            }
+            double alpha = -1;
+            cublasDaxpy(device::get_handle(), u.rows() * u.cols(), &alpha, v.data(), 1, u.data(), 1);
         }
 
         vector<double> mult(
