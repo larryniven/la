@@ -109,6 +109,26 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(18, ha2(1, 2));
     }},
 
+    {"test-vec-dyadic-prod", []() {
+        la::vector<double> ha {1, 2};
+        la::gpu::vector<double> da {ha};
+
+        la::vector<double> hb {3, 4, 5};
+        la::gpu::vector<double> db {hb};
+
+        la::gpu::vector<double> dc = dyadic_prod(da, db);
+        la::vector<double> hc = to_host(dc);
+
+        ebt::assert_equals(6, hc.size());
+
+        ebt::assert_equals(3, hc(0));
+        ebt::assert_equals(4, hc(1));
+        ebt::assert_equals(5, hc(2));
+
+        ebt::assert_equals(6, hc(3));
+        ebt::assert_equals(8, hc(4));
+        ebt::assert_equals(10, hc(5));
+    }},
 };
 
 int main()

@@ -192,14 +192,12 @@ namespace la {
             vector<double> const& b)
         {
             vector<double> result;
-
             result.resize(a.size() * b.size());
 
-            for (int i = 0; i < a.size(); ++i) {
-                for (int j = 0; j < b.size(); ++j) {
-                    result(i * a.size() + j) = a(i) * b(j);
-                }
-            }
+            double alpha = 1;
+            cublasDger(device::get_handle(), b.size(), a.size(),
+                &alpha, b.data(), 1, a.data(), 1,
+                result.data(), b.size());
 
             return result;
         }

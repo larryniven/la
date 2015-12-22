@@ -21,6 +21,22 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(32, r(1));
         ebt::assert_equals(50, r(2));
     }},
+
+    {"test-dyadic-product", []() {
+        la::vector<double> a {1, 2};
+        la::vector<double> b {3, 4, 5};
+        la::vector<double> c = dyadic_prod(a, b);
+
+        ebt::assert_equals(6, c.size());
+
+        ebt::assert_equals(3, c(0));
+        ebt::assert_equals(4, c(1));
+        ebt::assert_equals(5, c(2));
+
+        ebt::assert_equals(6, c(3));
+        ebt::assert_equals(8, c(4));
+        ebt::assert_equals(10, c(5));
+    }},
 };
 
 int main()
