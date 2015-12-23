@@ -109,14 +109,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(18, ha2(1, 2));
     }},
 
-    {"test-vec-dyadic-prod", []() {
+    {"test-vec-tensor-prod", []() {
         la::vector<double> ha {1, 2};
         la::gpu::vector<double> da {ha};
 
         la::vector<double> hb {3, 4, 5};
         la::gpu::vector<double> db {hb};
 
-        la::gpu::vector<double> dc = dyadic_prod(da, db);
+        la::gpu::vector<double> dc = tensor_prod(da, db);
         la::vector<double> hc = to_host(dc);
 
         ebt::assert_equals(6, hc.size());
@@ -128,6 +128,28 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(6, hc(3));
         ebt::assert_equals(8, hc(4));
         ebt::assert_equals(10, hc(5));
+    }},
+
+    {"test-outer-prod", []() {
+        la::vector<double> ha {1, 2};
+        la::gpu::vector<double> da {ha};
+
+        la::vector<double> hb {3, 4, 5};
+        la::gpu::vector<double> db {hb};
+
+        la::gpu::matrix<double> dc = outer_prod(da, db);
+        la::matrix<double> hc = to_host(dc);
+
+        ebt::assert_equals(2, hc.rows());
+        ebt::assert_equals(3, hc.cols());
+
+        ebt::assert_equals(3, hc(0, 0));
+        ebt::assert_equals(4, hc(0, 1));
+        ebt::assert_equals(5, hc(0, 2));
+
+        ebt::assert_equals(6, hc(1, 0));
+        ebt::assert_equals(8, hc(1, 1));
+        ebt::assert_equals(10, hc(1, 2));
     }},
 };
 

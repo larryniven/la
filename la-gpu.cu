@@ -188,7 +188,7 @@ namespace la {
             return result;
         }
  
-        vector<double> dyadic_prod(vector<double> const& a,
+        vector<double> tensor_prod(vector<double> const& a,
             vector<double> const& b)
         {
             vector<double> result;
@@ -198,6 +198,20 @@ namespace la {
             cublasDger(device::get_handle(), b.size(), a.size(),
                 &alpha, b.data(), 1, a.data(), 1,
                 result.data(), b.size());
+
+            return result;
+        }
+
+        matrix<double> outer_prod(vector<double> const& a,
+            vector<double> const& b)
+        {
+            matrix<double> result;
+            result.resize(a.size(), b.size());
+
+            double alpha = 1;
+            cublasDger(device::get_handle(), a.size(), b.size(),
+                &alpha, a.data(), 1, b.data(), 1,
+                result.data(), a.size());
 
             return result;
         }

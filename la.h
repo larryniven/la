@@ -93,7 +93,10 @@ namespace la {
     template <class T>
     matrix<T> trans(matrix<T> const& m);
 
-    vector<double> dyadic_prod(vector<double> const& a,
+    vector<double> tensor_prod(vector<double> const& a,
+        vector<double> const& b);
+
+    matrix<double> outer_prod(vector<double> const& a,
         vector<double> const& b);
 }
 

@@ -124,11 +124,23 @@ namespace la {
         return result;
     }
 
-    vector<double> dyadic_prod(vector<double> const& a,
+    vector<double> tensor_prod(vector<double> const& a,
         vector<double> const& b)
     {
         vector<double> result;
         result.resize(a.size() * b.size());
+
+        cblas_dger(CblasRowMajor, a.size(), b.size(), 1, a.data(), 1, b.data(), 1,
+            result.data(), b.size());
+
+        return result;
+    }
+
+    matrix<double> outer_prod(vector<double> const& a,
+        vector<double> const& b)
+    {
+        matrix<double> result;
+        result.resize(a.size(), b.size());
 
         cblas_dger(CblasRowMajor, a.size(), b.size(), 1, a.data(), 1, b.data(), 1,
             result.data(), b.size());

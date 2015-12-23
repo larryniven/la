@@ -121,7 +121,10 @@ namespace la {
         vector<double> lmult(matrix<double> const& u,
             vector<double> const& v);
 
-        vector<double> dyadic_prod(vector<double> const& a,
+        vector<double> tensor_prod(vector<double> const& a,
+            vector<double> const& b);
+
+        matrix<double> outer_prod(vector<double> const& a,
             vector<double> const& b);
 
         struct imul_op {
