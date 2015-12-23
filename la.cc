@@ -62,18 +62,6 @@ namespace la {
         return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
     }
 
-    vector<double> logistic(vector<double> const& v)
-    {
-        vector<double> result;
-        result.resize(v.size());
-
-        for (int i = 0; i < v.size(); ++i) {
-            result(i) = 1 / (1 + std::exp(-v(i)));
-        }
-
-        return result;
-    }
-
     void iadd(matrix<double>& u, matrix<double> const& v)
     {
         assert(u.rows() == v.rows());

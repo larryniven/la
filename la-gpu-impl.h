@@ -239,12 +239,5 @@ namespace la {
             thrust::get<0>(t) /= thrust::get<1>(t);
         }
 
-        template <class T>
-        __host__ __device__
-        void ilogistic_op::operator()(T t) const
-        {
-            thrust::get<0>(t) = 1 / (1 + std::exp(-thrust::get<1>(t)));
-        }
-
     }
 }

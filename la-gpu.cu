@@ -123,21 +123,6 @@ namespace la {
             return result;
         }
 
-        vector<double> logistic(vector<double> const& v)
-        {
-            vector<double> result;
-            result.resize(v.size());
-
-            thrust::for_each(
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(result.begin()), thrust::device_ptr<double const>(v.begin()))),
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(result.end()), thrust::device_ptr<double const>(v.end()))),
-                ilogistic_op());
-
-            return result;
-        }
-
         void iadd(matrix<double>& u, matrix<double> const& v)
         {
             assert(u.rows() == v.rows());

@@ -79,8 +79,6 @@ namespace la {
 
     double dot(vector<double> const& u, vector<double> const& v);
 
-    vector<double> logistic(vector<double> const& v);
-
     void iadd(matrix<double>& u, matrix<double> const& v);
     void isub(matrix<double>& u, matrix<double> const& v);
 
