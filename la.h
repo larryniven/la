@@ -2,19 +2,15 @@
 #define LA_H
 
 #include <vector>
+#include "ebt/ebt.h"
 
 namespace la {
-
-    template <class T>
-    struct vector;
-
-    template <class T>
-    vector<T> to_vector(std::vector<T> v);
 
     template <class T>
     struct vector {
 
         vector();
+        explicit vector(std::vector<T> v);
         vector(std::initializer_list<T> const& list);
 
         T* data();
@@ -30,8 +26,6 @@ namespace la {
         T& at(int i);
         T const& at(int i) const;
 
-        friend vector to_vector<T>(std::vector<T> v);
-
     private:
         std::vector<T> vec_;
     };
@@ -43,6 +37,7 @@ namespace la {
     struct matrix {
 
         matrix();
+        explicit matrix(std::vector<std::vector<T>> const& m);
         matrix(std::initializer_list<std::initializer_list<T>> const& list);
 
         T* data();
@@ -96,6 +91,33 @@ namespace la {
 
     matrix<double> outer_prod(vector<double> const& a,
         vector<double> const& b);
+
+}
+
+namespace ebt {
+    namespace json {
+    
+        template <class T>
+        struct json_parser<la::vector<T>> {
+            la::vector<T> parse(std::istream& is);
+        };
+    
+        template <class T>
+        struct json_parser<la::matrix<T>> {
+            la::matrix<T> parse(std::istream& is);
+        };
+    
+        template <class T>
+        struct json_writer<la::vector<T>> {
+            void write(la::vector<T> const& v, std::ostream& os);
+        };
+        
+        template <class T>
+        struct json_writer<la::matrix<T>> {
+            void write(la::matrix<T> const& m, std::ostream& os);
+        };
+    
+    }
 }
 
 #include "la-impl.h"

@@ -13,6 +13,11 @@ namespace la {
     {}
 
     template <class T>
+    vector<T>::vector(std::vector<T> v)
+        : vec_(std::move(v))
+    {}
+
+    template <class T>
     vector<T>::vector(std::initializer_list<T> const& list)
         : vec_(list)
     {}
@@ -68,6 +73,14 @@ namespace la {
     template <class T>
     matrix<T>::matrix()
     {}
+
+    template <class T>
+    matrix<T>::matrix(std::vector<std::vector<T>> const& m)
+    {
+        for (auto& v: m) {
+            vec_.insert(vec_.end(), v.begin(), v.end());
+        }
+    }
 
     template <class T>
     matrix<T>::matrix(std::initializer_list<std::initializer_list<T>> const& list)
@@ -150,4 +163,47 @@ namespace la {
         return result;
     }
 
+}
+
+namespace ebt {
+    namespace json {
+    
+        template <class T>
+        la::vector<T> json_parser<la::vector<T>>::parse(std::istream& is)
+        {
+            json_parser<std::vector<double>> vec_parser;
+            return la::vector<T>(vec_parser.parse(is));
+        }
+    
+        template <class T>
+        la::matrix<T> json_parser<la::matrix<T>>::parse(std::istream& is)
+        {
+            json_parser<std::vector<std::vector<double>>> mat_parser;
+            return la::matrix<T>(mat_parser.parse(is));
+        }
+
+        template <class T>
+        void json_writer<la::vector<T>>::write(la::vector<T> const& v, std::ostream& os)
+        {
+            std::vector<T> vec {v.data(), v.data() + v.size()};
+            ebt::json::json_writer<std::vector<T>> writer;
+            writer.write(vec, os);
+            os << std::endl;
+        }
+    
+        template <class T>
+        void json_writer<la::matrix<T>>::write(la::matrix<T> const& m, std::ostream& os)
+        {
+            std::vector<std::vector<T>> mat;
+
+            for (T const *i = m.data(); i < m.data() + m.rows() * m.cols(); i = i + m.cols()) {
+                mat.push_back(std::vector<T> {i, i + m.cols()});
+            }
+
+            ebt::json::json_writer<std::vector<std::vector<T>>> writer;
+            writer.write(mat, os);
+            os << std::endl;
+        }
+
+    }
 }
