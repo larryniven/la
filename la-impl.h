@@ -77,6 +77,8 @@ namespace la {
     template <class T>
     matrix<T>::matrix(std::vector<std::vector<T>> const& m)
     {
+        rows_ = m.size();
+        cols_ = m.front().size();
         for (auto& v: m) {
             vec_.insert(vec_.end(), v.begin(), v.end());
         }
@@ -188,7 +190,6 @@ namespace ebt {
             std::vector<T> vec {v.data(), v.data() + v.size()};
             ebt::json::json_writer<std::vector<T>> writer;
             writer.write(vec, os);
-            os << std::endl;
         }
     
         template <class T>
@@ -202,7 +203,6 @@ namespace ebt {
 
             ebt::json::json_writer<std::vector<std::vector<T>>> writer;
             writer.write(mat, os);
-            os << std::endl;
         }
 
     }

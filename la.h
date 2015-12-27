@@ -67,6 +67,8 @@ namespace la {
     void imul(vector<double>& u, vector<double> const& v);
     void idiv(vector<double>& u, vector<double> const& v);
 
+    vector<double> mult(vector<double> u, double d);
+
     vector<double> add(vector<double> u,
         vector<double> const& v);
 

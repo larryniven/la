@@ -42,11 +42,15 @@ namespace la {
         }
     }
 
-    vector<double> add(
-        vector<double> u,
-        vector<double> const& v)
+    vector<double> add(vector<double> u, vector<double> const& v)
     {
         iadd(u, v);
+        return u;
+    }
+
+    vector<double> mult(vector<double> u, double d)
+    {
+        imul(u, d);
         return u;
     }
 
