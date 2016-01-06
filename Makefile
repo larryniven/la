@@ -14,7 +14,7 @@ clean:
 libla.a: la.o
 	$(AR) rcs $@ $^
 
-liblagpu.a: la-gpu.o
+liblagpu.a: la.o la-gpu.o
 	$(AR) rcs $@ $^
 
 la-gpu.o: la-gpu.cu

@@ -2,6 +2,7 @@
 #define LA_GPU_H
 
 #include "la/la.h"
+#include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <vector>
 #include <cassert>
@@ -97,6 +98,8 @@ namespace la {
         la::matrix<T> to_host(matrix<T> const& m);
 
         void imul(vector<double>& u, double d);
+
+        vector<double> mult(vector<double> u, double d);
 
         void iadd(vector<double>& u, vector<double> const& v);
         void isub(vector<double>& u, vector<double> const& v);

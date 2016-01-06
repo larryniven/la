@@ -59,6 +59,12 @@ namespace la {
             cublasDscal(device::get_handle(), u.size(), &d, u.data(), 1);
         }
 
+        vector<double> mult(vector<double> u, double d)
+        {
+            imul(u, d);
+            return u;
+        }
+
         void iadd(vector<double>& u, vector<double> const& v)
         {
             assert(u.size() == v.size());
