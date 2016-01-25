@@ -1,14 +1,6 @@
 namespace la {
 
     template <class T>
-    vector<T> to_vector(std::vector<T> v)
-    {
-        vector<T> result;
-        result.vec_ = std::move(v);
-        return result;
-    }
-
-    template <class T>
     vector<T>::vector()
     {}
 
