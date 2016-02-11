@@ -12,10 +12,10 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(3, b.size());
     }},
 
-    {"test-mult", []() {
+    {"test-mul", []() {
         la::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
         la::vector<double> b {1, 2, 3};
-        la::vector<double> r = mult(a, b);
+        la::vector<double> r = mul(a, b);
         ebt::assert_equals(3, r.size());
         ebt::assert_equals(14, r(0));
         ebt::assert_equals(32, r(1));

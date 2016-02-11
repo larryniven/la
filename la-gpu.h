@@ -7,6 +7,7 @@
 #include <vector>
 #include <cassert>
 #include <thrust/tuple.h>
+#include "ebt/ebt.h"
 
 namespace la {
 
@@ -25,6 +26,27 @@ namespace la {
 
             static device& get_instance();
             static cublasHandle_t& get_handle();
+        };
+
+        template <class T>
+        struct vector_view {
+            vector_view(T const* data, int size);
+
+            T const* data() const;
+
+            unsigned int size() const;
+
+            T const& operator()(int i) const;
+
+            T const& at(int i) const;
+
+            T const* begin();
+
+            T const* end() const;
+
+        private:
+            T const* data_;
+            unsigned int size_;
         };
 
         template <class T>
@@ -91,35 +113,55 @@ namespace la {
             unsigned int cols_;
         };
 
+        // vector operation
+
         template <class T>
         la::vector<T> to_host(vector<T> const& v);
 
         template <class T>
-        la::matrix<T> to_host(matrix<T> const& m);
+        void to_device(vector<T>& dv, la::vector<T> const& hv);
+
+        void zero(vector<double>& v);
 
         void imul(vector<double>& u, double d);
-
-        vector<double> mult(vector<double> u, double d);
+        vector<double> mul(vector<double> u, double d);
 
         void iadd(vector<double>& u, vector<double> const& v);
+        vector<double> add(vector<double> u,
+            vector<double> const& v);
+
         void isub(vector<double>& u, vector<double> const& v);
-        void imul(vector<double>& u, vector<double> const& v);
         void idiv(vector<double>& u, vector<double> const& v);
 
-        vector<double> add(vector<double> u,
+        void emul(vector<double>& z, vector<double> const& u,
+            vector<double> const& v);
+        void iemul(vector<double>& u, vector<double> const& v);
+        vector<double> emul(vector<double> u,
             vector<double> const& v);
 
         double norm(std::vector<double> const& v);
 
         double dot(vector<double> const& u, vector<double> const& v);
 
+        // matrix operation
+
+        template <class T>
+        la::matrix<T> to_host(matrix<T> const& m);
+
+        template <class T>
+        void to_device(matrix<T>& dm, la::matrix<T> const& hm);
+
+        void zero(matrix<double>& m);
+
         void iadd(matrix<double>& u, matrix<double> const& v);
         void isub(matrix<double>& u, matrix<double> const& v);
 
-        vector<double> mult(matrix<double> const& a,
+        void mul(vector<double>& u, matrix<double> const& a,
+            vector<double> const& v);
+        vector<double> mul(matrix<double> const& a,
             vector<double> const& v);
 
-        vector<double> lmult(matrix<double> const& u,
+        vector<double> lmul(matrix<double> const& u,
             vector<double> const& v);
 
         vector<double> tensor_prod(vector<double> const& a,
@@ -127,12 +169,6 @@ namespace la {
 
         matrix<double> outer_prod(vector<double> const& a,
             vector<double> const& b);
-
-        struct imul_op {
-            template <class T>
-            __host__ __device__
-            void operator()(T t) const;
-        };
 
         struct idiv_op {
             template <class T>

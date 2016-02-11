@@ -4,6 +4,47 @@ namespace la {
     namespace gpu {
 
         template <class T>
+        vector_view<T>::vector_view(T const* data, int size)
+            : data_(data), size_(size)
+        {}
+
+        template <class T>
+        T const* vector_view<T>::data() const
+        {
+            return data_;
+        }
+
+        template <class T>
+        unsigned int vector_view<T>::size() const
+        {
+            return size_;
+        }
+
+        template <class T>
+        T const& vector_view<T>::operator()(int i) const
+        {
+            return data_[i];
+        }
+
+        template <class T>
+        T const& vector_view<T>::at(int i) const
+        {
+            return data_[i];
+        }
+
+        template <class T>
+        T const* vector_view<T>::begin()
+        {
+            return data_;
+        }
+
+        template <class T>
+        T const* vector_view<T>::end() const
+        {
+            return data_ + size_;
+        }
+
+        template <class T>
         vector<T>::vector()
             : data_(nullptr), size_(0)
         {}
@@ -11,17 +52,18 @@ namespace la {
         template <class T>
         vector<T>::vector(la::vector<T> const& v)
         {
-             cudaMalloc(&data_, sizeof(T) * v.size());
-             cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
-             size_ = v.size();
+            cudaMalloc(&data_, sizeof(T) * v.size());
+            cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
+            size_ = v.size();
         }
 
         template <class T>
         vector<T>::vector(vector<T>&& v)
         {
-             data_ = v.data_;
-             v.data_ = nullptr;
-             size_ = v.size_;
+            data_ = v.data_;
+            v.data_ = nullptr;
+            size_ = v.size_;
+            v.size_ = 0;
         }
 
         template <class T>
@@ -48,6 +90,7 @@ namespace la {
             data_ = v.data_;
             v.data_ = nullptr;
             size_ = v.size_;
+            v.size_ = 0;
 
             return *this;
         }
@@ -79,6 +122,10 @@ namespace la {
         template <class T>
         void vector<T>::resize(unsigned int size, T value)
         {
+            if (size == size_) {
+                return;
+            }
+
             cudaFree(data_);
             cudaMalloc(&data_, size * sizeof(T));
             std::vector<T> v;
@@ -226,10 +273,20 @@ namespace la {
         }
 
         template <class T>
-        __host__ __device__
-        void imul_op::operator()(T t) const
+        void to_device(vector<T>& dv, la::vector<T> const& hv)
         {
-            thrust::get<0>(t) *= thrust::get<1>(t);
+            assert(dv.size() == hv.size());
+
+            cublasSetVector(hv.size(), sizeof(T), hv.data(), 1, dv.data(), 1);
+        }
+
+        template <class T>
+        void to_device(matrix<T>& dm, la::matrix<T> const& hm)
+        {
+            assert(dm.rows() == hm.rows() && dm.cols() == dm.cols());
+
+            la::matrix<T> mT = la::trans(hm);
+            cublasSetMatrix(dm.rows(), dm.cols(), sizeof(T), mT.data(), dm.rows(), dm.data(), dm.rows());
         }
 
         template <class T>

@@ -54,12 +54,17 @@ namespace la {
             return get_instance().handle;
         }
 
+        void zero(vector<double>& v)
+        {
+            cudaMemset(v.data(), 0, v.size() * sizeof(double));
+        }
+
         void imul(vector<double>& u, double d)
         {
             cublasDscal(device::get_handle(), u.size(), &d, u.data(), 1);
         }
 
-        vector<double> mult(vector<double> u, double d)
+        vector<double> mul(vector<double> u, double d)
         {
             imul(u, d);
             return u;
@@ -73,24 +78,20 @@ namespace la {
             cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
         }
 
+        vector<double> add(
+            vector<double> u,
+            vector<double> const& v)
+        {
+            iadd(u, v);
+            return u;
+        }
+
         void isub(vector<double>& u, vector<double> const& v)
         {
             assert(u.size() == v.size());
 
             double alpha = -1;
             cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
-        }
-
-        void imul(vector<double>& u, vector<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            thrust::for_each(
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(u.begin()), thrust::device_ptr<double const>(v.begin()))),
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(u.end()), thrust::device_ptr<double const>(v.end()))),
-                imul_op());
         }
 
         void idiv(vector<double>& u, vector<double> const& v)
@@ -105,11 +106,27 @@ namespace la {
                 idiv_op());
         }
 
-        vector<double> add(
+        void emul(vector<double>& z, vector<double> const& u,
+            vector<double> const& v)
+        {
+            assert(u.size() == v.size() && z.size() == v.size());
+
+            double alpha = 1;
+            double beta = 1;
+            cublasDgbmv(device::get_handle(), CUBLAS_OP_N, u.size(), u.size(), 0, 0,
+                &alpha, u.data(), 1, v.data(), 1, &beta, z.data(), 1);
+        }
+
+        void iemul(vector<double>& u, vector<double> const& v)
+        {
+            emul(u, u, v);
+        }
+
+        vector<double> emul(
             vector<double> u,
             vector<double> const& v)
         {
-            iadd(u, v);
+            emul(u, u, v);
             return u;
         }
 
@@ -127,6 +144,11 @@ namespace la {
             double result = 0;
             cublasDdot(device::get_handle(), u.size(), u.data(), 1, v.data(), 1, &result);
             return result;
+        }
+
+        void zero(matrix<double>& m)
+        {
+            cudaMemset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
         }
 
         void iadd(matrix<double>& u, matrix<double> const& v)
@@ -147,23 +169,31 @@ namespace la {
             cublasDaxpy(device::get_handle(), u.rows() * u.cols(), &alpha, v.data(), 1, u.data(), 1);
         }
 
-        vector<double> mult(
-            matrix<double> const& u,
+        void mul(vector<double>& u, matrix<double> const& a,
             vector<double> const& v)
         {
-            vector<double> result;
-            result.resize(u.rows());
+            assert(u.size() == a.rows() && a.cols() == v.size());
 
             double alpha = 1;
             double beta = 1;
             cublasDgemv(device::get_handle(), CUBLAS_OP_N,
-                u.rows(), u.cols(), &alpha, u.data(), u.rows(),
-                v.data(), 1, &beta, result.data(), 1);
+                a.rows(), a.cols(), &alpha, a.data(), a.rows(),
+                v.data(), 1, &beta, u.data(), 1);
+        }
+
+        vector<double> mul(
+            matrix<double> const& a,
+            vector<double> const& v)
+        {
+            vector<double> result;
+            result.resize(a.rows());
+
+            mul(result, a, v);
 
             return result;
         }
 
-        vector<double> lmult(
+        vector<double> lmul(
             matrix<double> const& u,
             vector<double> const& v)
         {

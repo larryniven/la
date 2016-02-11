@@ -60,29 +60,43 @@ namespace la {
         unsigned int cols_;
     };
 
+    // vector operation
+
+    void zero(vector<double>& v);
+
     void imul(vector<double>& u, double d);
+    vector<double> mul(vector<double> u, double d);
 
     void iadd(vector<double>& u, vector<double> const& v);
+    vector<double> add(vector<double> u,
+        vector<double> const& v);
+
     void isub(vector<double>& u, vector<double> const& v);
-    void imul(vector<double>& u, vector<double> const& v);
     void idiv(vector<double>& u, vector<double> const& v);
 
-    vector<double> mult(vector<double> u, double d);
-
-    vector<double> add(vector<double> u,
+    void emul(vector<double>& z, vector<double> u,
+        vector<double> const& v);
+    void iemul(vector<double>& u, vector<double> const& v);
+    vector<double> emul(vector<double> u,
         vector<double> const& v);
 
     double norm(vector<double> const& v);
 
     double dot(vector<double> const& u, vector<double> const& v);
 
+    // matrix operation
+
+    void zero(matrix<double>& m);
+
     void iadd(matrix<double>& u, matrix<double> const& v);
     void isub(matrix<double>& u, matrix<double> const& v);
 
-    vector<double> mult(matrix<double> const& a,
+    void mul(vector<double>& u, matrix<double> const& a,
+        vector<double> const& v);
+    vector<double> mul(matrix<double> const& a,
         vector<double> const& v);
 
-    vector<double> lmult(matrix<double> const& a,
+    vector<double> lmul(matrix<double> const& a,
         vector<double> const& v);
 
     template <class T>

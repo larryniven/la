@@ -21,4 +21,4 @@ la-gpu.o: la-gpu.cu
 	nvcc $(CXXFLAGS) -c la-gpu.cu
 
 la.o: la.h
-la-gpu.o: la-gpu.h
+la-gpu.o: la-gpu.h la-gpu-impl.h
