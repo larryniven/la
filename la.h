@@ -3,110 +3,192 @@
 
 #include <vector>
 #include "ebt/ebt.h"
+#include <cassert>
 
 namespace la {
 
     template <class T>
-    struct vector {
+    struct vector_like {
 
-        vector();
-        explicit vector(std::vector<T> v);
-        vector(std::initializer_list<T> const& list);
+        virtual ~vector_like();
 
-        T* data();
-        T const* data() const;
+        virtual T* data() = 0;
+        virtual T const* data() const = 0;
 
-        unsigned int size() const;
+        virtual unsigned int size() const = 0;
 
-        void resize(unsigned int size, T value = 0);
+        virtual T& operator()(int i) = 0;
+        virtual T const& operator()(int i) const = 0;
 
-        T& operator()(int i);
-        T const& operator()(int i) const;
+        virtual T& at(int i) = 0;
+        virtual T const& at(int i) const = 0;
 
-        T& at(int i);
-        T const& at(int i) const;
-
-    private:
-        std::vector<T> vec_;
     };
 
     template <class T>
-    struct matrix;
+    struct vector : public vector_like<T> {
 
-    template <class T>
-    struct matrix {
+        vector();
+        explicit vector(std::vector<T> data);
+        explicit vector(vector_like<T> const& v);
+        vector(std::initializer_list<T> list);
 
-        matrix();
-        explicit matrix(std::vector<std::vector<T>> const& m);
-        matrix(std::initializer_list<std::initializer_list<T>> const& list);
+        virtual T* data();
+        virtual T const* data() const;
 
-        T* data();
-        T const* data() const;
+        virtual unsigned int size() const;
 
-        unsigned int rows() const;
-        unsigned int cols() const;
+        virtual T& operator()(int i);
+        virtual T const& operator()(int i) const;
 
-        void resize(int rows, int cols, T value = 0);
+        virtual T& at(int i);
+        virtual T const& at(int i) const;
 
-        T& operator()(unsigned int r, unsigned int c);
-        T const& operator()(unsigned int r, unsigned int c) const;
-
-        T& at(unsigned int r, unsigned int c);
-        T const& at(unsigned int r, unsigned int c) const;
+        void resize(unsigned int size, T value = 0);
 
     private:
-        std::vector<T> vec_;
+        std::vector<T> data_;
+
+    };
+
+    template <class T>
+    struct weak_vector : public vector_like<T> {
+
+        weak_vector(vector_like<T>& data);
+        weak_vector(T *data, unsigned int size);
+
+        virtual T* data();
+        virtual T const* data() const;
+
+        virtual unsigned int size() const;
+
+        virtual T& operator()(int i);
+        virtual T const& operator()(int i) const;
+
+        virtual T& at(int i);
+        virtual T const& at(int i) const;
+
+    private:
+        T *data_;
+        unsigned int size_;
+    };
+
+    template <class T>
+    struct matrix_like {
+
+        virtual ~matrix_like();
+
+        virtual T* data() = 0;
+        virtual T const* data() const = 0;
+
+        virtual unsigned int rows() const = 0;
+        virtual unsigned int cols() const = 0;
+
+        virtual T& operator()(unsigned int r, unsigned int c) = 0;
+        virtual T const& operator()(unsigned int r, unsigned int c) const = 0;
+
+        virtual T& at(unsigned int r, unsigned int c) = 0;
+        virtual T const& at(unsigned int r, unsigned int c) const = 0;
+
+    };
+
+    template <class T>
+    struct matrix : public matrix_like<T> {
+
+        matrix();
+        explicit matrix(std::vector<std::vector<T>> data);
+        explicit matrix(matrix_like<T> const& m);
+        matrix(std::initializer_list<std::initializer_list<T>> list);
+
+        virtual T* data();
+        virtual T const* data() const;
+
+        virtual unsigned int rows() const;
+        virtual unsigned int cols() const;
+
+        virtual T& operator()(unsigned int r, unsigned int c);
+        virtual T const& operator()(unsigned int r, unsigned int c) const;
+
+        virtual T& at(unsigned int r, unsigned int c);
+        virtual T const& at(unsigned int r, unsigned int c) const;
+
+        void resize(unsigned int rows, unsigned int cols, T value = 0);
+
+    private:
+        vector<T> data_;
         unsigned int rows_;
         unsigned int cols_;
     };
 
+    template <class T>
+    struct weak_matrix : public matrix_like<T> {
+
+        weak_matrix(matrix_like<T>& m);
+
+        virtual T* data();
+        virtual T const* data() const;
+
+        virtual unsigned int rows() const;
+        virtual unsigned int cols() const;
+
+        virtual T& operator()(unsigned int r, unsigned int c);
+        virtual T const& operator()(unsigned int r, unsigned int c) const;
+
+        virtual T& at(unsigned int r, unsigned int c);
+        virtual T const& at(unsigned int r, unsigned int c) const;
+
+    private:
+        matrix_like<T>& data_;
+        
+    };
+
     // vector operation
 
-    void zero(vector<double>& v);
+    void zero(vector_like<double>& v);
 
-    void imul(vector<double>& u, double d);
-    vector<double> mul(vector<double> u, double d);
+    void imul(vector_like<double>& u, double d);
+    vector<double> mul(vector_like<double>& u, double d);
 
-    void iadd(vector<double>& u, vector<double> const& v);
-    vector<double> add(vector<double> u,
-        vector<double> const& v);
+    void iadd(vector_like<double>& u, vector_like<double> const& v);
+    vector<double> add(vector_like<double> const& u,
+        vector_like<double> const& v);
 
-    void isub(vector<double>& u, vector<double> const& v);
-    void idiv(vector<double>& u, vector<double> const& v);
+    void isub(vector_like<double>& u, vector_like<double> const& v);
+    void idiv(vector_like<double>& u, vector_like<double> const& v);
 
-    void emul(vector<double>& z, vector<double> u,
-        vector<double> const& v);
-    void iemul(vector<double>& u, vector<double> const& v);
-    vector<double> emul(vector<double> u,
-        vector<double> const& v);
+    void emul(vector_like<double>& z, vector_like<double> const& u,
+        vector_like<double> const& v);
+    void iemul(vector_like<double>& u, vector_like<double> const& v);
+    vector<double> emul(vector_like<double> const& u,
+        vector_like<double> const& v);
 
-    double norm(vector<double> const& v);
+    double norm(vector_like<double> const& v);
 
-    double dot(vector<double> const& u, vector<double> const& v);
+    double dot(vector_like<double> const& u, vector_like<double> const& v);
 
     // matrix operation
 
-    void zero(matrix<double>& m);
+    void zero(matrix_like<double>& m);
 
-    void iadd(matrix<double>& u, matrix<double> const& v);
-    void isub(matrix<double>& u, matrix<double> const& v);
+    void iadd(matrix_like<double>& u, matrix_like<double> const& v);
+    void isub(matrix_like<double>& u, matrix_like<double> const& v);
 
-    void mul(vector<double>& u, matrix<double> const& a,
-        vector<double> const& v);
-    vector<double> mul(matrix<double> const& a,
-        vector<double> const& v);
+    void mul(vector_like<double>& u, matrix_like<double> const& a,
+        vector_like<double> const& v);
+    vector<double> mul(matrix_like<double> const& a,
+        vector_like<double> const& v);
 
-    vector<double> lmul(matrix<double> const& a,
-        vector<double> const& v);
+    vector<double> lmul(matrix_like<double> const& a,
+        vector_like<double> const& v);
 
     template <class T>
-    matrix<T> trans(matrix<T> const& m);
+    matrix<T> trans(matrix_like<T> const& m);
 
-    vector<double> tensor_prod(vector<double> const& a,
-        vector<double> const& b);
+    vector<double> tensor_prod(vector_like<double> const& a,
+        vector_like<double> const& b);
 
-    matrix<double> outer_prod(vector<double> const& a,
-        vector<double> const& b);
+    matrix<double> outer_prod(vector_like<double> const& a,
+        vector_like<double> const& b);
 
 }
 

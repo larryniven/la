@@ -1,101 +1,194 @@
 namespace la {
 
+    // vector_like
+
+    template <class T>
+    vector_like<T>::~vector_like()
+    {}
+
+    // vector
+
     template <class T>
     vector<T>::vector()
     {}
 
     template <class T>
-    vector<T>::vector(std::vector<T> v)
-        : vec_(std::move(v))
+    vector<T>::vector(std::vector<T> data)
+        : data_(data)
     {}
 
     template <class T>
-    vector<T>::vector(std::initializer_list<T> const& list)
-        : vec_(list)
+    vector<T>::vector(vector_like<T> const& v)
+        : data_(v.data(), v.data() + v.size())
+    {}
+
+    template <class T>
+    vector<T>::vector(std::initializer_list<T> list)
+        : data_(list)
     {}
 
     template <class T>
     T* vector<T>::data()
     {
-        return vec_.data();
+        return data_.data();
     }
 
     template <class T>
     T const* vector<T>::data() const
     {
-        return vec_.data();
+        return data_.data();
     }
 
     template <class T>
     unsigned int vector<T>::size() const
     {
-        return vec_.size();
-    }
-
-    template <class T>
-    void vector<T>::resize(unsigned int size, T value)
-    {
-        return vec_.resize(size, value);
+        return data_.size();
     }
 
     template <class T>
     T& vector<T>::operator()(int i)
     {
-        return vec_[i];
+        return data_[i];
     }
 
     template <class T>
     T const& vector<T>::operator()(int i) const
     {
-        return vec_[i];
+        return data_[i];
     }
 
     template <class T>
     T& vector<T>::at(int i)
     {
-        return vec_.at(i);
+        return data_.at(i);
     }
 
     template <class T>
     T const& vector<T>::at(int i) const
     {
-        return vec_.at(i);
+        return data_.at(i);
     }
+
+    template <class T>
+    void vector<T>::resize(unsigned int size, T value)
+    {
+        data_.resize(size, value);
+    }
+
+    // weak_vector
+
+    template <class T>
+    weak_vector<T>::weak_vector(vector_like<T>& data)
+        : data_(data.data()), size_(data.size())
+    {}
+
+    template <class T>
+    weak_vector<T>::weak_vector(T *data, unsigned int size)
+        : data_(data), size_(size)
+    {}
+
+    template <class T>
+    T* weak_vector<T>::data()
+    {
+        return data_;
+    }
+
+    template <class T>
+    T const* weak_vector<T>::data() const
+    {
+        return data_;
+    }
+
+    template <class T>
+    unsigned int weak_vector<T>::size() const
+    {
+        return size_;
+    }
+
+    template <class T>
+    T& weak_vector<T>::operator()(int i)
+    {
+        return data_[i];
+    }
+
+    template <class T>
+    T const& weak_vector<T>::operator()(int i) const
+    {
+        return data_[i];
+    }
+
+    template <class T>
+    T& weak_vector<T>::at(int i)
+    {
+        assert(i < size_);
+        return data_[i];
+    }
+
+    template <class T>
+    T const& weak_vector<T>::at(int i) const
+    {
+        assert(i < size_);
+        return data_[i];
+    }
+
+    // matrix_like
+
+    template <class T>
+    matrix_like<T>::~matrix_like()
+    {}
+
+    // matrix
 
     template <class T>
     matrix<T>::matrix()
     {}
 
     template <class T>
-    matrix<T>::matrix(std::vector<std::vector<T>> const& m)
+    matrix<T>::matrix(std::vector<std::vector<T>> data)
     {
-        rows_ = m.size();
-        cols_ = m.front().size();
-        for (auto& v: m) {
-            vec_.insert(vec_.end(), v.begin(), v.end());
+        std::vector<T> m;
+
+        rows_ = data.size();
+        cols_ = data.front().size();
+
+        for (auto& v: data) {
+            m.insert(m.end(), v.begin(), v.end());
         }
+
+        data_ = vector<T>(std::move(m));
     }
 
     template <class T>
-    matrix<T>::matrix(std::initializer_list<std::initializer_list<T>> const& list)
+    matrix<T>::matrix(matrix_like<T> const& m)
+        : data_(m.data(), m.data() + m.rows() * m.cols())
+        , rows_(m.rows()), cols_(m.cols())
+    {}
+
+    template <class T>
+    matrix<T>::matrix(std::initializer_list<std::initializer_list<T>> data)
     {
-        rows_ = list.size();
-        cols_ = list.begin()->size();
-        for (auto& ell: list) {
-            vec_.insert(vec_.end(), ell.begin(), ell.end());
+        std::vector<T> m;
+
+        rows_ = data.size();
+        cols_ = data.begin()->size();
+
+        for (auto& v: data) {
+            m.insert(m.end(), v.begin(), v.end());
         }
+
+        data_ = vector<T>(std::move(m));
     }
 
     template <class T>
     T* matrix<T>::data()
     {
-        return vec_.data();
+        return data_.data();
     }
 
     template <class T>
     T const* matrix<T>::data() const
     {
-        return vec_.data();
+        return data_.data();
     }
 
     template <class T>
@@ -111,39 +204,94 @@ namespace la {
     }
 
     template <class T>
-    void matrix<T>::resize(int rows, int cols, T value)
-    {
-        vec_.resize(rows * cols, value);
-        rows_ = rows;
-        cols_ = cols;
-    }
-
-    template <class T>
     T& matrix<T>::operator()(unsigned int r, unsigned int c)
     {
-        return vec_[r * cols_ + c];
+        return data_(r * cols_ + c);
     }
 
     template <class T>
     T const& matrix<T>::operator()(unsigned int r, unsigned int c) const
     {
-        return vec_[r * cols_ + c];
+        return data_(r * cols_ + c);
     }
 
     template <class T>
     T& matrix<T>::at(unsigned int r, unsigned int c)
     {
-        return vec_.at(r * cols_ + c);
+        return data_.at(r * cols_ + c);
     }
 
     template <class T>
     T const& matrix<T>::at(unsigned int r, unsigned int c) const
     {
-        return vec_.at(r * cols_ + c);
+        return data_.at(r * cols_ + c);
     }
 
     template <class T>
-    matrix<T> trans(matrix<T> const& m)
+    void matrix<T>::resize(unsigned int rows, unsigned int cols, T value)
+    {
+        data_.resize(rows * cols, value);
+        rows_ = rows;
+        cols_ = cols;
+    }
+
+    // weak_matrix
+
+    template <class T>
+    weak_matrix<T>::weak_matrix(matrix_like<T>& data)
+        : data_(data)
+    {} 
+
+    template <class T>
+    T* weak_matrix<T>::data()
+    {
+        return data_.data();
+    }
+
+    template <class T>
+    T const* weak_matrix<T>::data() const
+    {
+        return data_.data();
+    }
+
+    template <class T>
+    unsigned int weak_matrix<T>::rows() const
+    {
+        return data_.rows();
+    }
+
+    template <class T>
+    unsigned int weak_matrix<T>::cols() const
+    {
+        return data_.cols();
+    }
+
+    template <class T>
+    T& weak_matrix<T>::operator()(unsigned int r, unsigned int c)
+    {
+        return data_(r, c);
+    }
+
+    template <class T>
+    T const& weak_matrix<T>::operator()(unsigned int r, unsigned int c) const
+    {
+        return data_(r, c);
+    }
+
+    template <class T>
+    T& weak_matrix<T>::at(unsigned int r, unsigned int c)
+    {
+        return data_.at(r, c);
+    }
+
+    template <class T>
+    T const& weak_matrix<T>::at(unsigned int r, unsigned int c) const
+    {
+        return data_.at(r, c);
+    }
+
+    template <class T>
+    matrix<T> trans(matrix_like<T> const& m)
     {
         matrix<T> result;
         result.resize(m.cols(), m.rows());

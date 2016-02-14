@@ -54,23 +54,26 @@ namespace la {
             return get_instance().handle;
         }
 
-        void zero(vector<double>& v)
+        // vector operations
+
+        void zero(vector_like<double>& v)
         {
             cudaMemset(v.data(), 0, v.size() * sizeof(double));
         }
 
-        void imul(vector<double>& u, double d)
+        void imul(vector_like<double>& u, double d)
         {
             cublasDscal(device::get_handle(), u.size(), &d, u.data(), 1);
         }
 
-        vector<double> mul(vector<double> u, double d)
+        vector<double> mul(vector_like<double> const& u, double d)
         {
-            imul(u, d);
-            return u;
+            vector<double> result { u };
+            imul(result, d);
+            return result;
         }
 
-        void iadd(vector<double>& u, vector<double> const& v)
+        void iadd(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
 
@@ -79,14 +82,15 @@ namespace la {
         }
 
         vector<double> add(
-            vector<double> u,
-            vector<double> const& v)
+            vector_like<double> const& u,
+            vector_like<double> const& v)
         {
-            iadd(u, v);
-            return u;
+            vector<double> result { u };
+            iadd(result, v);
+            return result;
         }
 
-        void isub(vector<double>& u, vector<double> const& v)
+        void isub(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
 
@@ -94,7 +98,7 @@ namespace la {
             cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
         }
 
-        void idiv(vector<double>& u, vector<double> const& v)
+        void idiv(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
 
@@ -106,8 +110,8 @@ namespace la {
                 idiv_op());
         }
 
-        void emul(vector<double>& z, vector<double> const& u,
-            vector<double> const& v)
+        void emul(vector_like<double>& z, vector_like<double> const& u,
+            vector_like<double> const& v)
         {
             assert(u.size() == v.size() && z.size() == v.size());
 
@@ -117,27 +121,29 @@ namespace la {
                 &alpha, u.data(), 1, v.data(), 1, &beta, z.data(), 1);
         }
 
-        void iemul(vector<double>& u, vector<double> const& v)
+        void iemul(vector_like<double>& u, vector_like<double> const& v)
         {
             emul(u, u, v);
         }
 
         vector<double> emul(
-            vector<double> u,
-            vector<double> const& v)
+            vector_like<double> const& u,
+            vector_like<double> const& v)
         {
-            emul(u, u, v);
-            return u;
+            vector<double> result;
+            result.resize(u.size());
+            emul(result, u, v);
+            return result;
         }
 
-        double norm(vector<double> const& v)
+        double norm(vector_like<double> const& v)
         {
             double result = 0;
             cublasDnrm2(device::get_handle(), v.size(), v.data(), 1, &result);
             return result;
         }
 
-        double dot(vector<double> const& u, vector<double> const& v)
+        double dot(vector_like<double> const& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
 
@@ -146,12 +152,14 @@ namespace la {
             return result;
         }
 
-        void zero(matrix<double>& m)
+        // matrix operations
+
+        void zero(matrix_like<double>& m)
         {
             cudaMemset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
         }
 
-        void iadd(matrix<double>& u, matrix<double> const& v)
+        void iadd(matrix_like<double>& u, matrix_like<double> const& v)
         {
             assert(u.rows() == v.rows());
             assert(u.cols() == v.cols());
@@ -160,7 +168,7 @@ namespace la {
             cublasDaxpy(device::get_handle(), u.rows() * u.cols(), &alpha, v.data(), 1, u.data(), 1);
         }
 
-        void isub(matrix<double>& u, matrix<double> const& v)
+        void isub(matrix_like<double>& u, matrix_like<double> const& v)
         {
             assert(u.rows() == v.rows());
             assert(u.cols() == v.cols());
@@ -169,8 +177,8 @@ namespace la {
             cublasDaxpy(device::get_handle(), u.rows() * u.cols(), &alpha, v.data(), 1, u.data(), 1);
         }
 
-        void mul(vector<double>& u, matrix<double> const& a,
-            vector<double> const& v)
+        void mul(vector_like<double>& u, matrix_like<double> const& a,
+            vector_like<double> const& v)
         {
             assert(u.size() == a.rows() && a.cols() == v.size());
 
@@ -182,8 +190,8 @@ namespace la {
         }
 
         vector<double> mul(
-            matrix<double> const& a,
-            vector<double> const& v)
+            matrix_like<double> const& a,
+            vector_like<double> const& v)
         {
             vector<double> result;
             result.resize(a.rows());
@@ -194,8 +202,8 @@ namespace la {
         }
 
         vector<double> lmul(
-            matrix<double> const& u,
-            vector<double> const& v)
+            matrix_like<double> const& u,
+            vector_like<double> const& v)
         {
             vector<double> result;
             result.resize(u.cols());
@@ -209,8 +217,8 @@ namespace la {
             return result;
         }
  
-        vector<double> tensor_prod(vector<double> const& a,
-            vector<double> const& b)
+        vector<double> tensor_prod(vector_like<double> const& a,
+            vector_like<double> const& b)
         {
             vector<double> result;
             result.resize(a.size() * b.size());
@@ -223,8 +231,8 @@ namespace la {
             return result;
         }
 
-        matrix<double> outer_prod(vector<double> const& a,
-            vector<double> const& b)
+        matrix<double> outer_prod(vector_like<double> const& a,
+            vector_like<double> const& b)
         {
             matrix<double> result;
             result.resize(a.size(), b.size());

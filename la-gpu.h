@@ -29,146 +29,180 @@ namespace la {
         };
 
         template <class T>
-        struct vector_view {
-            vector_view(T const* data, int size);
+        struct vector_like {
 
-            T const* data() const;
+            virtual ~vector_like();
 
-            unsigned int size() const;
+            virtual T* data() = 0;
+            virtual T const* data() const = 0;
 
-            T const& operator()(int i) const;
+            virtual unsigned int size() const = 0;
 
-            T const& at(int i) const;
+            virtual T* begin() = 0;
+            virtual T const* begin() const = 0;
 
-            T const* begin();
-
-            T const* end() const;
-
-        private:
-            T const* data_;
-            unsigned int size_;
+            virtual T* end() = 0;
+            virtual T const* end() const = 0;
         };
 
         template <class T>
-        struct vector {
-
+        struct vector : public vector_like<T> {
             vector();
-            explicit vector(la::vector<T> const& v);
-            vector(vector<T>&& v);
-            vector(vector<T> const& v);
+            ~vector();
+
+            vector(vector const& v);
+            vector(vector&& v);
+            explicit vector(vector_like<T> const& v);
+            explicit vector(la::vector_like<T> const& v);
 
             vector<T>& operator=(vector<T> const& v);
             vector<T>& operator=(vector<T>&& v);
 
-            ~vector();
+            virtual T* data();
+            virtual T const* data() const;
 
-            T* data();
-            T const* data() const;
+            virtual unsigned int size() const;
 
-            unsigned int size() const;
+            virtual T* begin();
+            virtual T const* begin() const;
+
+            virtual T* end();
+            virtual T const* end() const;
 
             void resize(unsigned int size, T value = 0);
 
-            T& operator()(int i);
-            T const& operator()(int i) const;
-
-            T& at(int i);
-            T const& at(int i) const;
-
-            T* begin();
-            T const* begin() const;
-
-            T* end();
-            T const* end() const;
-
         private:
-            T* data_;
+            T *data_;
             unsigned int size_;
         };
 
         template <class T>
-        struct matrix {
+        la::vector<T> to_host(vector_like<T> const& v);
 
-            matrix();
-            explicit matrix(la::matrix<T> const& m);
+        template <class T>
+        void to_device(vector<T>& dv, la::vector_like<T> const& hv);
 
-            T* data();
-            T const* data() const;
+        template <class T>
+        struct weak_vector : public vector_like<T> {
 
-            unsigned int rows() const;
+            weak_vector(T *data, unsigned int size);
+            weak_vector(vector_like<T>& data);
 
-            unsigned int cols() const;
+            virtual T* data();
+            virtual T const* data() const;
 
-            void resize(int rows, int cols, T value = 0);
+            virtual unsigned int size() const;
 
-            T& operator()(unsigned int r, unsigned int c);
-            T const& operator()(unsigned int r, unsigned int c) const;
+            virtual T* begin();
+            virtual T const* begin() const;
 
-            T& at(unsigned int r, unsigned int c);
-            T const& at(unsigned int r, unsigned int c) const;
+            virtual T* end();
+            virtual T const* end() const;
 
         private:
-            vector<T> vec_;
+            T *data_;
+            unsigned int size_;
+        };
+
+        template <class T>
+        struct matrix_like {
+
+            virtual ~matrix_like();
+
+            virtual T* data() = 0;
+            virtual T const* data() const = 0;
+
+            virtual unsigned int rows() const = 0;
+            virtual unsigned int cols() const = 0;
+
+        };
+
+        template <class T>
+        struct matrix : public matrix_like<T> {
+
+            matrix();
+            explicit matrix(matrix_like<T> const& m);
+            explicit matrix(la::matrix_like<T> const& m);
+
+            virtual T* data();
+            virtual T const* data() const;
+
+            virtual unsigned int rows() const;
+            virtual unsigned int cols() const;
+
+            void resize(unsigned int rows, unsigned int cols, T value = 0);
+
+        private:
+            vector<T> data_;
             unsigned int rows_;
             unsigned int cols_;
         };
 
+        template <class T>
+        la::matrix<T> to_host(matrix_like<T> const& m);
+
+        template <class T>
+        void to_device(matrix<T>& dm, la::matrix_like<T> const& hm);
+
+        template <class T>
+        struct weak_matrix : public matrix_like<T> {
+
+            weak_matrix(matrix_like<T>& m);
+
+            virtual T* data();
+            virtual T const* data() const;
+
+            virtual unsigned int rows() const;
+            virtual unsigned int cols() const;
+
+        private:
+            matrix_like<T>& data_;
+        };
+
         // vector operation
 
-        template <class T>
-        la::vector<T> to_host(vector<T> const& v);
+        void zero(vector_like<double>& v);
 
-        template <class T>
-        void to_device(vector<T>& dv, la::vector<T> const& hv);
+        void imul(vector_like<double>& u, double d);
+        vector<double> mul(vector_like<double> const& u, double d);
 
-        void zero(vector<double>& v);
+        void iadd(vector_like<double>& u, vector_like<double> const& v);
+        vector<double> add(vector_like<double> const& u,
+            vector_like<double> const& v);
 
-        void imul(vector<double>& u, double d);
-        vector<double> mul(vector<double> u, double d);
+        void isub(vector_like<double>& u, vector_like<double> const& v);
+        void idiv(vector_like<double>& u, vector_like<double> const& v);
 
-        void iadd(vector<double>& u, vector<double> const& v);
-        vector<double> add(vector<double> u,
-            vector<double> const& v);
+        void emul(vector_like<double>& z, vector_like<double> const& u,
+            vector_like<double> const& v);
+        void iemul(vector_like<double>& u, vector_like<double> const& v);
+        vector<double> emul(vector_like<double> const& u,
+            vector_like<double> const& v);
 
-        void isub(vector<double>& u, vector<double> const& v);
-        void idiv(vector<double>& u, vector<double> const& v);
+        double norm(vector_like<double> const& v);
 
-        void emul(vector<double>& z, vector<double> const& u,
-            vector<double> const& v);
-        void iemul(vector<double>& u, vector<double> const& v);
-        vector<double> emul(vector<double> u,
-            vector<double> const& v);
-
-        double norm(std::vector<double> const& v);
-
-        double dot(vector<double> const& u, vector<double> const& v);
+        double dot(vector_like<double> const& u, vector_like<double> const& v);
 
         // matrix operation
 
-        template <class T>
-        la::matrix<T> to_host(matrix<T> const& m);
+        void zero(matrix_like<double>& m);
 
-        template <class T>
-        void to_device(matrix<T>& dm, la::matrix<T> const& hm);
+        void iadd(matrix_like<double>& u, matrix_like<double> const& v);
+        void isub(matrix_like<double>& u, matrix_like<double> const& v);
 
-        void zero(matrix<double>& m);
+        void mul(vector_like<double>& u, matrix_like<double> const& a,
+            vector_like<double> const& v);
+        vector<double> mul(matrix_like<double> const& a,
+            vector_like<double> const& v);
 
-        void iadd(matrix<double>& u, matrix<double> const& v);
-        void isub(matrix<double>& u, matrix<double> const& v);
+        vector<double> lmul(matrix_like<double> const& u,
+            vector_like<double> const& v);
 
-        void mul(vector<double>& u, matrix<double> const& a,
-            vector<double> const& v);
-        vector<double> mul(matrix<double> const& a,
-            vector<double> const& v);
+        vector<double> tensor_prod(vector_like<double> const& a,
+            vector_like<double> const& b);
 
-        vector<double> lmul(matrix<double> const& u,
-            vector<double> const& v);
-
-        vector<double> tensor_prod(vector<double> const& a,
-            vector<double> const& b);
-
-        matrix<double> outer_prod(vector<double> const& a,
-            vector<double> const& b);
+        matrix<double> outer_prod(vector_like<double> const& a,
+            vector_like<double> const& b);
 
         struct idiv_op {
             template <class T>

@@ -11,10 +11,10 @@ clean:
 	-rm *.o
 
 test-la: test-la.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ ../la.o -lebt -lcblas
+	$(CXX) $(CXXFLAGS) -o $@ $^ ../la.o -lebt -lblas
 
 test-la-gpu.o: test-la-gpu.cu
 	nvcc $(CXXFLAGS) -c $^
 
 test-la-gpu: test-la-gpu.o
-	nvcc $(CXXFLAGS) -L /opt/cuda/lib64 -o $@ ../la-gpu.o $^ -lcublas -lcudart -lebt
+	nvcc $(CXXFLAGS) -L /opt/cuda/lib64 -o $@ ../la.o ../la-gpu.o $^ -lblas -lcublas -lcudart -lebt
