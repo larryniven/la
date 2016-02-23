@@ -148,9 +148,9 @@ namespace la {
         }
 
         template <class T>
-        void to_device(vector<T>& dv, la::vector_like<T> const& hv)
+        void to_device(vector_like<T>& dv, la::vector_like<T> const& hv)
         {
-            assert(dv.size == hv.size);
+            assert(dv.size() == hv.size());
 
             cublasSetVector(hv.size(), sizeof(T), hv.data(), 1, dv.data(), 1);
         }
@@ -278,7 +278,7 @@ namespace la {
         }
 
         template <class T>
-        void to_device(matrix<T>& dm, la::matrix_like<T> const& hm)
+        void to_device(matrix_like<T>& dm, la::matrix_like<T> const& hm)
         {
             assert(dm.rows() == hm.rows() && dm.cols() == dm.cols());
 
@@ -289,32 +289,37 @@ namespace la {
         // weak_matrix
 
         template <class T>
-        weak_matrix<T>::weak_matrix(matrix_like<T>& data)
-            : data_(data)
+        weak_matrix<T>::weak_matrix(matrix_like<T>& m)
+            : data_(m.data()), rows_(m.rows()), cols_(m.cols())
+        {}
+
+        template <class T>
+        weak_matrix<T>::weak_matrix(T *data, unsigned int rows, unsigned int cols)
+            : data_(data), rows_(rows), cols_(cols)
         {}
 
         template <class T>
         T* weak_matrix<T>::data()
         {
-            return data_.data();
+            return data_;
         }
 
         template <class T>
         T const* weak_matrix<T>::data() const
         {
-            return data_.data();
+            return data_;
         }
 
         template <class T>
         unsigned int weak_matrix<T>::rows() const
         {
-            return data_.rows();
+            return rows_;
         }
 
         template <class T>
         unsigned int weak_matrix<T>::cols() const
         {
-            return data_.cols();
+            return cols_;
         }
 
         template <class T>

@@ -80,7 +80,7 @@ namespace la {
         la::vector<T> to_host(vector_like<T> const& v);
 
         template <class T>
-        void to_device(vector<T>& dv, la::vector_like<T> const& hv);
+        void to_device(vector_like<T>& dv, la::vector_like<T> const& hv);
 
         template <class T>
         struct weak_vector : public vector_like<T> {
@@ -142,12 +142,13 @@ namespace la {
         la::matrix<T> to_host(matrix_like<T> const& m);
 
         template <class T>
-        void to_device(matrix<T>& dm, la::matrix_like<T> const& hm);
+        void to_device(matrix_like<T>& dm, la::matrix_like<T> const& hm);
 
         template <class T>
         struct weak_matrix : public matrix_like<T> {
 
             weak_matrix(matrix_like<T>& m);
+            weak_matrix(T *data, unsigned int rows, unsigned int cols);
 
             virtual T* data();
             virtual T const* data() const;
@@ -156,7 +157,9 @@ namespace la {
             virtual unsigned int cols() const;
 
         private:
-            matrix_like<T>& data_;
+            T *data_;
+            unsigned int rows_;
+            unsigned int cols_;
         };
 
         // vector operation
@@ -197,6 +200,8 @@ namespace la {
 
         vector<double> lmul(matrix_like<double> const& u,
             vector_like<double> const& v);
+
+        double norm(matrix_like<double> const& v);
 
         vector<double> tensor_prod(vector_like<double> const& a,
             vector_like<double> const& b);

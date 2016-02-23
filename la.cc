@@ -1,8 +1,8 @@
 #include "la/la.h"
-#include <cblas.h>
 #include <cmath>
 #include <cassert>
 #include <cstring>
+#include <cblas.h>
 
 namespace la {
 
@@ -16,7 +16,16 @@ namespace la {
         cblas_dscal(u.size(), d, u.data(), 1);
     }
 
-    vector<double> mul(vector_like<double>& u, double d)
+    vector<double> mul(vector<double>&& u, double d)
+    {
+        vector<double> result { std::move(u) };
+
+        imul(result, d);
+
+        return result;
+    }
+
+    vector<double> mul(vector_like<double> const& u, double d)
     {
         vector<double> result { u };
 
@@ -37,6 +46,26 @@ namespace la {
         vector<double> result { u };
 
         iadd(result, v);
+
+        return result;
+    }
+
+    vector<double> add(vector<double>&& u,
+        vector_like<double> const& v)
+    {
+        vector<double> result { std::move(u) };
+
+        iadd(result, v);
+
+        return result;
+    }
+
+    vector<double> add(vector_like<double> const& u,
+        vector<double>&& v)
+    {
+        vector<double> result { std::move(v) };
+
+        iadd(result, u);
 
         return result;
     }
@@ -101,16 +130,39 @@ namespace la {
         std::memset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
     }
 
+    void imul(matrix_like<double>& u, double d)
+    {
+        weak_vector<double> v(u.data(), u.rows() * u.cols());
+        imul(v, d);
+    }
+
+    matrix<double> mul(matrix<double>&& u, double d)
+    {
+        matrix<double> result { std::move(u) };
+
+        imul(result, d);
+
+        return result;
+    }
+
+    matrix<double> mul(matrix_like<double> const& u, double d)
+    {
+        matrix<double> result { u };
+
+        imul(result, d);
+
+        return result;
+    }
+
     void iadd(matrix_like<double>& u, matrix_like<double> const& v)
     {
         assert(u.rows() == v.rows());
         assert(u.cols() == v.cols());
 
-        for (int i = 0; i < u.rows(); ++i) {
-            for (int j = 0; j < u.cols(); ++j) {
-                u(i, j) += v(i, j);
-            }
-        }
+        la::weak_vector<double> a {u.data(), u.rows() * u.cols()};
+        la::weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
+
+        iadd(a, b);
     }
 
     void isub(matrix_like<double>& u, matrix_like<double> const& v)
@@ -118,11 +170,10 @@ namespace la {
         assert(u.rows() == v.rows());
         assert(u.cols() == v.cols());
 
-        for (int i = 0; i < u.rows(); ++i) {
-            for (int j = 0; j < u.cols(); ++j) {
-                u(i, j) -= v(i, j);
-            }
-        }
+        la::weak_vector<double> a {u.data(), u.rows() * u.cols()};
+        la::weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
+
+        isub(a, b);
     }
 
     void mul(vector_like<double>& u, matrix_like<double> const& a,

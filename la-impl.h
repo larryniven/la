@@ -160,7 +160,7 @@ namespace la {
 
     template <class T>
     matrix<T>::matrix(matrix_like<T> const& m)
-        : data_(m.data(), m.data() + m.rows() * m.cols())
+        : data_(std::vector<T> { m.data(), m.data() + m.rows() * m.cols() })
         , rows_(m.rows()), cols_(m.cols())
     {}
 
@@ -243,51 +243,58 @@ namespace la {
     {} 
 
     template <class T>
+    weak_matrix<T>::weak_matrix(T *data, unsigned int rows, unsigned int cols)
+        : data_(data), rows_(rows), cols_(cols)
+    {} 
+
+    template <class T>
     T* weak_matrix<T>::data()
     {
-        return data_.data();
+        return data_;
     }
 
     template <class T>
     T const* weak_matrix<T>::data() const
     {
-        return data_.data();
+        return data_;
     }
 
     template <class T>
     unsigned int weak_matrix<T>::rows() const
     {
-        return data_.rows();
+        return rows_;
     }
 
     template <class T>
     unsigned int weak_matrix<T>::cols() const
     {
-        return data_.cols();
+        return cols_;
     }
 
     template <class T>
     T& weak_matrix<T>::operator()(unsigned int r, unsigned int c)
     {
-        return data_(r, c);
+        return data_[r * cols_ + c];
     }
 
     template <class T>
     T const& weak_matrix<T>::operator()(unsigned int r, unsigned int c) const
     {
-        return data_(r, c);
+        return data_[r * cols_ + c];
     }
 
     template <class T>
     T& weak_matrix<T>::at(unsigned int r, unsigned int c)
     {
-        return data_.at(r, c);
+        assert(r < rows_ && c < cols_);
+        return data_[r * cols_ + c];
     }
 
     template <class T>
     T const& weak_matrix<T>::at(unsigned int r, unsigned int c) const
     {
-        return data_.at(r, c);
+        assert(r < rows_ && c < cols_);
+        return data_[r * cols_ + c];
     }
 
     template <class T>

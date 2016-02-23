@@ -2,7 +2,6 @@
 #include <cmath>
 #include <cassert>
 #include <cublas_v2.h>
-#include <cblas.h>
 #include <thrust/device_ptr.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/zip_iterator.h>
@@ -217,6 +216,12 @@ namespace la {
             return result;
         }
  
+        double norm(matrix_like<double> const& v)
+        {
+            weak_vector<double> u(v.data(), v.rows() * v.cols());
+            return norm(u);
+        }
+
         vector<double> tensor_prod(vector_like<double> const& a,
             vector_like<double> const& b)
         {

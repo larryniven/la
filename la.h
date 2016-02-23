@@ -124,6 +124,7 @@ namespace la {
     struct weak_matrix : public matrix_like<T> {
 
         weak_matrix(matrix_like<T>& m);
+        weak_matrix(T *data, unsigned int rows, unsigned int cols);
 
         virtual T* data();
         virtual T const* data() const;
@@ -138,8 +139,9 @@ namespace la {
         virtual T const& at(unsigned int r, unsigned int c) const;
 
     private:
-        matrix_like<T>& data_;
-        
+        T *data_;
+        unsigned int rows_;
+        unsigned int cols_;
     };
 
     // vector operation
@@ -147,11 +149,16 @@ namespace la {
     void zero(vector_like<double>& v);
 
     void imul(vector_like<double>& u, double d);
-    vector<double> mul(vector_like<double>& u, double d);
+    vector<double> mul(vector<double>&& u, double d);
+    vector<double> mul(vector_like<double> const& u, double d);
 
     void iadd(vector_like<double>& u, vector_like<double> const& v);
     vector<double> add(vector_like<double> const& u,
         vector_like<double> const& v);
+    vector<double> add(vector<double>&& u,
+        vector_like<double> const& v);
+    vector<double> add(vector_like<double> const& u,
+        vector<double>&& v);
 
     void isub(vector_like<double>& u, vector_like<double> const& v);
     void idiv(vector_like<double>& u, vector_like<double> const& v);
@@ -169,6 +176,10 @@ namespace la {
     // matrix operation
 
     void zero(matrix_like<double>& m);
+
+    void imul(matrix_like<double>& u, double d);
+    matrix<double> mul(matrix<double>&& u, double d);
+    matrix<double> mul(matrix_like<double> const& u, double d);
 
     void iadd(matrix_like<double>& u, matrix_like<double> const& v);
     void isub(matrix_like<double>& u, matrix_like<double> const& v);
