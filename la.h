@@ -173,6 +173,8 @@ namespace la {
 
     double dot(vector_like<double> const& u, vector_like<double> const& v);
 
+    void halve_precision(vector_like<double>& u);
+
     // matrix operation
 
     void zero(matrix_like<double>& m);
@@ -201,6 +203,7 @@ namespace la {
     matrix<double> outer_prod(vector_like<double> const& a,
         vector_like<double> const& b);
 
+    void halve_precision(matrix_like<double>& u);
 }
 
 namespace ebt {

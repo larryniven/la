@@ -125,6 +125,15 @@ namespace la {
         return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
     }
 
+    void halve_precision(vector_like<double>& u)
+    {
+        for (int i = 0; i < u.size(); ++i) {
+            std::ostringstream oss;
+            oss << u(i);
+            u(i) = stod(oss.str());
+        }
+    }
+
     void zero(matrix_like<double>& m)
     {
         std::memset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
@@ -232,5 +241,11 @@ namespace la {
             result.data(), b.size());
 
         return result;
+    }
+
+    void halve_precision(matrix_like<double>& u)
+    {
+        weak_vector<double> v { u.data(), u.rows() * u.cols() };
+        halve_precision(v);
     }
 }

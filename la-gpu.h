@@ -186,6 +186,8 @@ namespace la {
 
         double dot(vector_like<double> const& u, vector_like<double> const& v);
 
+        void halve_precision(vector_like<double>& u);
+
         // matrix operation
 
         void zero(matrix_like<double>& m);
@@ -215,6 +217,7 @@ namespace la {
             void operator()(T t) const;
         };
 
+        void halve_precision(matrix_like<double>& u);
     }
 }
 
