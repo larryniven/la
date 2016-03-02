@@ -164,6 +164,8 @@ namespace la {
 
         // vector operation
 
+        void copy(vector_like<double>& u, vector_like<double> const& v);
+
         void zero(vector_like<double>& v);
 
         void imul(vector_like<double>& u, double d);
@@ -186,9 +188,9 @@ namespace la {
 
         double dot(vector_like<double> const& u, vector_like<double> const& v);
 
-        void halve_precision(vector_like<double>& u);
-
         // matrix operation
+
+        void copy(matrix_like<double>& u, matrix_like<double> const& v);
 
         void zero(matrix_like<double>& m);
 
@@ -216,8 +218,6 @@ namespace la {
             __host__ __device__
             void operator()(T t) const;
         };
-
-        void halve_precision(matrix_like<double>& u);
     }
 }
 

@@ -55,6 +55,13 @@ namespace la {
 
         // vector operations
 
+        void copy(vector_like<double>& u, vector_like<double> const& v)
+        {
+            assert(u.size() == v.size());
+
+            cudaMemcpy(u.data(), v.data(), v.size() * sizeof(double), cudaMemcpyDeviceToDevice);
+        }
+
         void zero(vector_like<double>& v)
         {
             cudaMemset(v.data(), 0, v.size() * sizeof(double));
@@ -151,14 +158,14 @@ namespace la {
             return result;
         }
 
-        void halve_precision(vector_like<double>& u)
-        {
-            la::vector<double> v = to_host(u);
-            la::halve_precision(v);
-            to_device(u, v);
-        }
-
         // matrix operations
+
+        void copy(matrix_like<double>& u, matrix_like<double> const& v)
+        {
+            assert(u.rows() == v.rows() && u.cols() == v.cols());
+
+            cudaMemcpy(u.data(), v.data(), v.rows() * v.cols() * sizeof(double), cudaMemcpyDeviceToDevice);
+        }
 
         void zero(matrix_like<double>& m)
         {
@@ -255,12 +262,6 @@ namespace la {
                 result.data(), a.size());
 
             return result;
-        }
-
-        void halve_precision(matrix_like<double>& u)
-        {
-            weak_vector<double> v { u.data(), u.rows() * u.cols() };
-            halve_precision(v);
         }
     }
 }

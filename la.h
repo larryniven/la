@@ -146,6 +146,8 @@ namespace la {
 
     // vector operation
 
+    void copy(vector_like<double>& u, vector_like<double> const& v);
+
     void zero(vector_like<double>& v);
 
     void imul(vector_like<double>& u, double d);
@@ -161,6 +163,8 @@ namespace la {
         vector<double>&& v);
 
     void isub(vector_like<double>& u, vector_like<double> const& v);
+    vector<double> sub(vector_like<double> const& u, vector_like<double> const& v);
+
     void idiv(vector_like<double>& u, vector_like<double> const& v);
 
     void emul(vector_like<double>& z, vector_like<double> const& u,
@@ -173,9 +177,9 @@ namespace la {
 
     double dot(vector_like<double> const& u, vector_like<double> const& v);
 
-    void halve_precision(vector_like<double>& u);
-
     // matrix operation
+
+    void copy(matrix_like<double>& u, matrix_like<double> const& v);
 
     void zero(matrix_like<double>& m);
 
@@ -202,8 +206,6 @@ namespace la {
 
     matrix<double> outer_prod(vector_like<double> const& a,
         vector_like<double> const& b);
-
-    void halve_precision(matrix_like<double>& u);
 }
 
 namespace ebt {

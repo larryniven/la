@@ -6,6 +6,13 @@
 
 namespace la {
 
+    void copy(vector_like<double>& u, vector_like<double> const& v)
+    {
+        assert(u.size() == v.size());
+
+        std::copy(v.data(), v.data() + v.size(), u.data());
+    }
+
     void zero(vector_like<double>& u)
     {
         std::memset(u.data(), 0, u.size() * sizeof(double));
@@ -77,6 +84,15 @@ namespace la {
         cblas_daxpy(u.size(), -1, v.data(), 1, u.data(), 1);
     }
 
+    vector<double> sub(vector_like<double> const& u, vector_like<double> const& v)
+    {
+        vector<double> result { u };
+
+        isub(result, u);
+
+        return result;
+    }
+
     void idiv(vector_like<double>& u, vector_like<double> const& v)
     {
         assert(u.size() == v.size());
@@ -125,13 +141,11 @@ namespace la {
         return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
     }
 
-    void halve_precision(vector_like<double>& u)
+    void copy(matrix_like<double>& u, matrix_like<double> const& v)
     {
-        for (int i = 0; i < u.size(); ++i) {
-            std::ostringstream oss;
-            oss << u(i);
-            u(i) = stod(oss.str());
-        }
+        assert(u.rows() == v.rows() && u.cols() == v.cols());
+
+        std::copy(v.data(), v.data() + v.rows() * v.cols(), u.data());
     }
 
     void zero(matrix_like<double>& m)
@@ -241,11 +255,5 @@ namespace la {
             result.data(), b.size());
 
         return result;
-    }
-
-    void halve_precision(matrix_like<double>& u)
-    {
-        weak_vector<double> v { u.data(), u.rows() * u.cols() };
-        halve_precision(v);
     }
 }
