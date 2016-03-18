@@ -29,7 +29,8 @@ namespace la {
     struct vector : public vector_like<T> {
 
         vector();
-        explicit vector(std::vector<T> data);
+        explicit vector(std::vector<T> const& data);
+        explicit vector(std::vector<T>&& data);
         explicit vector(vector_like<T> const& v);
         vector(std::initializer_list<T> list);
 

@@ -13,8 +13,13 @@ namespace la {
     {}
 
     template <class T>
-    vector<T>::vector(std::vector<T> data)
+    vector<T>::vector(std::vector<T> const& data)
         : data_(data)
+    {}
+
+    template <class T>
+    vector<T>::vector(std::vector<T>&& data)
+        : data_(std::move(data))
     {}
 
     template <class T>
