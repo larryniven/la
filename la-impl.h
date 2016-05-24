@@ -244,7 +244,7 @@ namespace la {
 
     template <class T>
     weak_matrix<T>::weak_matrix(matrix_like<T>& data)
-        : data_(data)
+        : data_(data.data()), rows_(data.rows()), cols_(data.cols())
     {} 
 
     template <class T>
