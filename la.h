@@ -196,13 +196,20 @@ namespace la {
     vector<double> mul(matrix_like<double> const& a,
         vector_like<double> const& v);
 
-    vector<double> lmul(matrix_like<double> const& a,
-        vector_like<double> const& v);
+    void lmul(vector_like<double>& u, 
+        vector_like<double> const& v, matrix_like<double> const& a);
+
+    vector<double> lmul(vector_like<double> const& v,
+        matrix_like<double> const& a);
 
     template <class T>
     matrix<T> trans(matrix_like<T> const& m);
 
     vector<double> tensor_prod(vector_like<double> const& a,
+        vector_like<double> const& b);
+
+    void outer_prod(matrix_like<double>& result,
+        vector_like<double> const& a,
         vector_like<double> const& b);
 
     matrix<double> outer_prod(vector_like<double> const& a,

@@ -220,15 +220,24 @@ namespace la {
         return result;
     }
 
+    void lmul(vector_like<double>& u,
+        vector_like<double> const& v,
+        matrix_like<double> const& a)
+    {
+        assert(u.size() == a.cols() && a.rows() == v.size());
+
+        cblas_dgemv(CblasRowMajor, CblasTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),
+            v.data(), 1, 1, u.data(), 1);
+    }
+
     vector<double> lmul(
-        matrix_like<double> const& u,
-        vector_like<double> const& v)
+        vector_like<double> const& v,
+        matrix_like<double> const& a)
     {
         vector<double> result;
-        result.resize(u.rows());
+        result.resize(a.cols());
 
-        cblas_dgemv(CblasRowMajor, CblasTrans, u.rows(), u.cols(), 1, u.data(), u.cols(),
-            v.data(), 1, 1, result.data(), 1);
+        lmul(result, v, a);
 
         return result;
     }
@@ -245,14 +254,23 @@ namespace la {
         return result;
     }
 
+    void outer_prod(matrix_like<double>& result,
+        vector_like<double> const& a,
+        vector_like<double> const& b)
+    {
+        assert(result.rows() == a.size() && result.cols() == b.size());
+
+        cblas_dger(CblasRowMajor, a.size(), b.size(), 1, a.data(), 1, b.data(), 1,
+            result.data(), b.size());
+    }
+
     matrix<double> outer_prod(vector_like<double> const& a,
         vector_like<double> const& b)
     {
         matrix<double> result;
         result.resize(a.size(), b.size());
 
-        cblas_dger(CblasRowMajor, a.size(), b.size(), 1, a.data(), 1, b.data(), 1,
-            result.data(), b.size());
+        outer_prod(result, a, b);
 
         return result;
     }
