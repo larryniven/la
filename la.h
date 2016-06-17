@@ -202,6 +202,8 @@ namespace la {
     vector<double> lmul(vector_like<double> const& v,
         matrix_like<double> const& a);
 
+    double norm(matrix_like<double> const& m);
+
     template <class T>
     matrix<T> trans(matrix_like<T> const& m);
 

@@ -242,6 +242,11 @@ namespace la {
         return result;
     }
 
+    double norm(matrix_like<double> const& m)
+    {
+        return norm(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
+    }
+
     vector<double> tensor_prod(vector_like<double> const& a,
         vector_like<double> const& b)
     {
