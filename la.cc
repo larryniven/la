@@ -242,6 +242,23 @@ namespace la {
         return result;
     }
 
+    void mul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, a.rows(), a.cols(), b.cols(),
+            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+    }
+
+    matrix<double> mul(matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        matrix<double> result;
+        result.resize(a.rows(), b.cols());
+        mul(result, a, b);
+
+        return result;
+    }
+
     double norm(matrix_like<double> const& m)
     {
         return norm(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });

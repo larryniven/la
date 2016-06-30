@@ -198,9 +198,13 @@ namespace la {
 
     void lmul(vector_like<double>& u, 
         vector_like<double> const& v, matrix_like<double> const& a);
-
     vector<double> lmul(vector_like<double> const& v,
         matrix_like<double> const& a);
+
+    void mul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b);
+    matrix<double> mul(matrix_like<double> const& a,
+        matrix_like<double> const& b);
 
     double norm(matrix_like<double> const& m);
 
