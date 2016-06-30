@@ -206,6 +206,11 @@ namespace la {
     matrix<double> mul(matrix_like<double> const& a,
         matrix_like<double> const& b);
 
+    void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b);
+    void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b);
+
     double norm(matrix_like<double> const& m);
 
     template <class T>

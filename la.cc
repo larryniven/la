@@ -245,7 +245,10 @@ namespace la {
     void mul(matrix_like<double>& u, matrix_like<double> const& a,
         matrix_like<double> const& b)
     {
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, a.rows(), a.cols(), b.cols(),
+        assert(a.cols() == b.rows());
+        assert(a.rows() == u.rows() && b.cols() == u.cols());
+
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, u.rows(), u.cols(), a.cols(),
             1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
     }
 
@@ -296,4 +299,25 @@ namespace la {
 
         return result;
     }
+
+    void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        assert(a.rows() == b.rows());
+        assert(u.rows() == a.cols() && u.cols() == b.cols());
+
+        cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, a.cols(), b.cols(), b.rows(),
+            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+    }
+
+    void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        assert(a.cols() == b.cols());
+        assert(u.rows() == a.rows() && u.cols() == b.rows());
+
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, a.rows(), b.rows(), a.cols(),
+            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+    }
+
 }
