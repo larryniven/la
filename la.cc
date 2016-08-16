@@ -202,7 +202,13 @@ namespace la {
     void mul(vector_like<double>& u, matrix_like<double> const& a,
         vector_like<double> const& v)
     {
-        assert(u.size() == a.rows() && a.cols() == v.size());
+        if (!(u.size() == a.rows() && a.cols() == v.size())) {
+            std::cout << "assertion u.size() == a.rows() && a.cols() == v.size() fails" << std::endl;
+            std::cout << "u.size() = " << u.size() << std::endl;
+            std::cout << "a.rows() = " << a.rows() << std::endl;
+            std::cout << "a.cols() = " << a.cols() << std::endl;
+            std::cout << "v.size() = " << v.size() << std::endl;
+        }
 
         cblas_dgemv(CblasRowMajor, CblasNoTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),
             v.data(), 1, 1, u.data(), 1);
@@ -224,7 +230,13 @@ namespace la {
         vector_like<double> const& v,
         matrix_like<double> const& a)
     {
-        assert(u.size() == a.cols() && a.rows() == v.size());
+        if (!(u.size() == a.cols() && a.rows() == v.size())) {
+            std::cout << "assertion u.size() == a.cols() && a.rows() == v.size() fails" << std::endl;
+            std::cout << "u.size() = " << u.size() << std::endl;
+            std::cout << "a.cols() = " << a.cols() << std::endl;
+            std::cout << "a.rows() = " << a.rows() << std::endl;
+            std::cout << "v.size() = " << v.size() << std::endl;
+        }
 
         cblas_dgemv(CblasRowMajor, CblasTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),
             v.data(), 1, 1, u.data(), 1);
