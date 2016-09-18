@@ -178,6 +178,8 @@ namespace la {
 
     double dot(vector_like<double> const& u, vector_like<double> const& v);
 
+    bool has_nan(vector_like<double> const& u);
+
     // matrix operation
 
     void copy(matrix_like<double>& u, matrix_like<double> const& v);
@@ -225,6 +227,8 @@ namespace la {
 
     matrix<double> outer_prod(vector_like<double> const& a,
         vector_like<double> const& b);
+
+    bool has_nan(matrix_like<double> const& m);
 }
 
 namespace ebt {

@@ -141,6 +141,17 @@ namespace la {
         return cblas_ddot(u.size(), u.data(), 1, v.data(), 1);
     }
 
+    bool has_nan(vector_like<double> const& u)
+    {
+        for (int i = 0; i < u.size(); ++i) {
+            if (std::isnan(u(i))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     void copy(matrix_like<double>& u, matrix_like<double> const& v)
     {
         assert(u.rows() == v.rows() && u.cols() == v.cols());
@@ -274,6 +285,26 @@ namespace la {
         return result;
     }
 
+    void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        assert(a.rows() == b.rows());
+        assert(u.rows() == a.cols() && u.cols() == b.cols());
+
+        cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, a.cols(), b.cols(), b.rows(),
+            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+    }
+
+    void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
+        matrix_like<double> const& b)
+    {
+        assert(a.cols() == b.cols());
+        assert(u.rows() == a.rows() && u.cols() == b.rows());
+
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, a.rows(), b.rows(), a.cols(),
+            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+    }
+
     double norm(matrix_like<double> const& m)
     {
         return norm(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
@@ -312,24 +343,9 @@ namespace la {
         return result;
     }
 
-    void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
-        matrix_like<double> const& b)
+    bool has_nan(matrix_like<double> const& m)
     {
-        assert(a.rows() == b.rows());
-        assert(u.rows() == a.cols() && u.cols() == b.cols());
-
-        cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, a.cols(), b.cols(), b.rows(),
-            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
-    }
-
-    void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
-        matrix_like<double> const& b)
-    {
-        assert(a.cols() == b.cols());
-        assert(u.rows() == a.rows() && u.cols() == b.rows());
-
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, a.rows(), b.rows(), a.cols(),
-            1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
+        return has_nan(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
     }
 
 }
