@@ -302,6 +302,187 @@ namespace la {
         return data_[r * cols_ + c];
     }
 
+    // tensor_like
+
+    template <class T>
+    tensor_like<T>::~tensor_like()
+    {}
+
+    // tensor
+
+    template <class T>
+    tensor<T>::tensor(std::vector<T> data, std::vector<unsigned int> sizes)
+        : data_(data), sizes_(sizes)
+    {
+    }
+
+    template <class T>
+    T* tensor<T>::data()
+    {
+        return data_.data();
+    }
+
+    template <class T>
+    T const* tensor<T>::data() const
+    {
+        return data_.data();
+    }
+
+    template <class T>
+    unsigned int tensor<T>::dim() const
+    {
+        return sizes_.size();
+    }
+
+    template <class T>
+    unsigned int tensor<T>::size(unsigned int d) const
+    {
+        return sizes_.at(d);
+    }
+
+    template <class T>
+    T& tensor<T>::operator()(std::vector<unsigned int> indices)
+    {
+        unsigned int d = 0;
+
+        for (int i = 0; i < indices.size(); ++i) {
+            d = d * sizes_.at(i) + indices.at(i);
+        }
+
+        return data_(d);
+    }
+
+    template <class T>
+    T const& tensor<T>::operator()(std::vector<unsigned int> indices) const
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_.at(i) + indices.at(i);
+        }
+
+        return data_(d);
+    }
+
+    template <class T>
+    T& tensor<T>::at(std::vector<unsigned int> indices)
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_.at(i) + indices.at(i);
+        }
+
+        return data_.at(d);
+    }
+
+    template <class T>
+    T const& tensor<T>::at(std::vector<unsigned int> indices) const
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_.at(i) + indices.at(i);
+        }
+
+        return data_.at(d);
+    }
+
+    // weak_tensor
+
+    template <class T>
+    weak_tensor<T>::weak_tensor(tensor_like<T>& t)
+        : data_(t.data())
+    {
+        sizes_.resize(t.dim());
+        unsigned int d = 0;
+        for (int i = 0; i < t.dim(); ++i) {
+            d += t.size(i);
+            sizes_(i) = t.size(i);
+        }
+        size_ = d;
+    }
+
+    template <class T>
+    weak_tensor<T>::weak_tensor(T *data, unsigned int size,
+        std::vector<unsigned int> sizes)
+        : data_(data), size_(size), sizes_(sizes)
+    {
+    }
+
+    template <class T>
+    T* weak_tensor<T>::data()
+    {
+        return data_;
+    }
+
+    template <class T>
+    T const* weak_tensor<T>::data() const
+    {
+        return data_;
+    }
+
+    template <class T>
+    unsigned int weak_tensor<T>::dim() const
+    {
+        return sizes_.size();
+    }
+
+    template <class T>
+    unsigned int weak_tensor<T>::size(unsigned int d) const
+    {
+        return sizes_(d);
+    }
+
+    template <class T>
+    T& weak_tensor<T>::operator()(std::vector<unsigned int> indices)
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_(i) + indices.at(i);
+        }
+
+        return data_[d];
+    }
+
+    template <class T>
+    T const& weak_tensor<T>::operator()(std::vector<unsigned int> indices) const
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_(i) + indices.at(i);
+        }
+
+        return data_[d];
+    }
+
+    template <class T>
+    T& weak_tensor<T>::at(std::vector<unsigned int> indices)
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_(i) + indices.at(i);
+        }
+
+        return data_[d];
+    }
+
+    template <class T>
+    T const& weak_tensor<T>::at(std::vector<unsigned int> indices) const
+    {
+        unsigned int d = indices.front();
+
+        for (int i = 1; i < indices.size(); ++i) {
+            d = d * sizes_(i) + indices.at(i);
+        }
+
+        return data_[d];
+    }
+
+
     template <class T>
     matrix<T> trans(matrix_like<T> const& m)
     {

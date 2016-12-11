@@ -145,6 +145,72 @@ namespace la {
         unsigned int cols_;
     };
 
+    template <class T>
+    struct tensor_like {
+        virtual ~tensor_like();
+
+        virtual T* data() = 0;
+        virtual T const* data() const = 0;
+
+        virtual unsigned int dim() const = 0;
+        virtual unsigned int size(unsigned int d) const = 0;
+
+        virtual T& operator()(std::vector<unsigned int> indices) = 0;
+        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+
+        virtual T& at(std::vector<unsigned int> indices) = 0;
+        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+
+    };
+
+    template <class T>
+    struct tensor
+        : public tensor_like<T> {
+
+        tensor(std::vector<T> data, std::vector<unsigned int> sizes);
+
+        virtual T* data() = 0;
+        virtual T const* data() const = 0;
+
+        virtual unsigned int dim() const = 0;
+        virtual unsigned int size(unsigned int d) const = 0;
+
+        virtual T& operator()(std::vector<unsigned int> indices) = 0;
+        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+
+        virtual T& at(std::vector<unsigned int> indices) = 0;
+        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+
+    private:
+        vector<T> data_;
+        vector<unsigned int> sizes_;
+    };
+
+    template <class T>
+    struct weak_tensor
+        : public tensor_like<T> {
+
+        weak_tensor(tensor_like<T>& t);
+        weak_tensor(T *data, unsigned int size, std::vector<unsigned int> sizes);
+
+        virtual T* data() = 0;
+        virtual T const* data() const = 0;
+
+        virtual unsigned int dim() const = 0;
+        virtual unsigned int size(unsigned int d) const = 0;
+
+        virtual T& operator()(std::vector<unsigned int> indices) = 0;
+        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+
+        virtual T& at(std::vector<unsigned int> indices) = 0;
+        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+
+    private:
+        T *data_;
+        unsigned int size_;
+        vector<unsigned int> sizes_;
+    };
+
     // vector operation
 
     void copy(vector_like<double>& u, vector_like<double> const& v);
