@@ -167,19 +167,22 @@ namespace la {
     struct tensor
         : public tensor_like<T> {
 
+        tensor();
         tensor(std::vector<T> data, std::vector<unsigned int> sizes);
 
-        virtual T* data() = 0;
-        virtual T const* data() const = 0;
+        virtual T* data();
+        virtual T const* data() const;
 
-        virtual unsigned int dim() const = 0;
-        virtual unsigned int size(unsigned int d) const = 0;
+        virtual unsigned int dim() const;
+        virtual unsigned int size(unsigned int d) const;
 
-        virtual T& operator()(std::vector<unsigned int> indices) = 0;
-        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+        virtual T& operator()(std::vector<unsigned int> indices);
+        virtual T const& operator()(std::vector<unsigned int> indices) const;
 
-        virtual T& at(std::vector<unsigned int> indices) = 0;
-        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+        virtual T& at(std::vector<unsigned int> indices);
+        virtual T const& at(std::vector<unsigned int> indices) const;
+
+        void resize(std::vector<unsigned int> sizes, T value = 0);
 
     private:
         vector<T> data_;
@@ -193,17 +196,17 @@ namespace la {
         weak_tensor(tensor_like<T>& t);
         weak_tensor(T *data, unsigned int size, std::vector<unsigned int> sizes);
 
-        virtual T* data() = 0;
-        virtual T const* data() const = 0;
+        virtual T* data();
+        virtual T const* data() const;
 
-        virtual unsigned int dim() const = 0;
-        virtual unsigned int size(unsigned int d) const = 0;
+        virtual unsigned int dim() const;
+        virtual unsigned int size(unsigned int d) const;
 
-        virtual T& operator()(std::vector<unsigned int> indices) = 0;
-        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+        virtual T& operator()(std::vector<unsigned int> indices);
+        virtual T const& operator()(std::vector<unsigned int> indices) const;
 
-        virtual T& at(std::vector<unsigned int> indices) = 0;
-        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+        virtual T& at(std::vector<unsigned int> indices);
+        virtual T const& at(std::vector<unsigned int> indices) const;
 
     private:
         T *data_;
