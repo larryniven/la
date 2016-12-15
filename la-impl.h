@@ -422,9 +422,9 @@ namespace la {
     }
 
     template <class T>
-    weak_tensor<T>::weak_tensor(T *data, unsigned int size,
+    weak_tensor<T>::weak_tensor(T *data,
         std::vector<unsigned int> sizes)
-        : data_(data), size_(size), sizes_(sizes)
+        : data_(data), sizes_(sizes)
     {
     }
 

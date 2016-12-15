@@ -194,7 +194,7 @@ namespace la {
         : public tensor_like<T> {
 
         weak_tensor(tensor_like<T>& t);
-        weak_tensor(T *data, unsigned int size, std::vector<unsigned int> sizes);
+        weak_tensor(T *data, std::vector<unsigned int> sizes);
 
         virtual T* data();
         virtual T const* data() const;
