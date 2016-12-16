@@ -396,14 +396,19 @@ namespace la {
     template <class T>
     void tensor<T>::resize(std::vector<unsigned int> sizes, T value)
     {
-        unsigned int d = 0;
+        if (sizes.size() == 0) {
+            sizes_ = la::vector<unsigned int>();
+            data_.resize(0);
+        } else {
+            unsigned int d = 1;
 
-        for (auto& s: sizes) {
-            d *= s;
+            for (auto& s: sizes) {
+                d *= s;
+            }
+
+            sizes_ = la::vector<unsigned int>(sizes);
+            data_.resize(d, value);
         }
-
-        sizes_ = la::vector<unsigned int>(sizes);
-        data_.resize(d, value);
     }
 
     // weak_tensor
