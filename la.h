@@ -161,6 +161,9 @@ namespace la {
         virtual T& at(std::vector<unsigned int> indices) = 0;
         virtual T const& at(std::vector<unsigned int> indices) const = 0;
 
+        virtual la::weak_vector<T> as_vector() const;
+
+        virtual la::weak_matrix<T> as_matrix() const;
     };
 
     template <class T>
@@ -298,6 +301,18 @@ namespace la {
         vector_like<double> const& b);
 
     bool has_nan(matrix_like<double> const& m);
+
+    // tensor operation
+
+    void zero(tensor_like<double>& m);
+
+    void mul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& v);
+    void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& b);
+    void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& b);
+
 }
 
 namespace ebt {
@@ -314,6 +329,11 @@ namespace ebt {
         };
     
         template <class T>
+        struct json_parser<la::tensor<T>> {
+            la::tensor<T> parse(std::istream& is);
+        };
+    
+        template <class T>
         struct json_writer<la::vector<T>> {
             void write(la::vector<T> const& v, std::ostream& os);
         };
@@ -321,6 +341,11 @@ namespace ebt {
         template <class T>
         struct json_writer<la::matrix<T>> {
             void write(la::matrix<T> const& m, std::ostream& os);
+        };
+
+        template <class T>
+        struct json_writer<la::tensor<T>> {
+            void write(la::tensor<T> const& m, std::ostream& os);
         };
     
     }

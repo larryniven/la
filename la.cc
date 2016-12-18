@@ -348,4 +348,38 @@ namespace la {
         return has_nan(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
     }
 
+    void zero(tensor_like<double>& u)
+    {
+        if (u.dim() == 0) {
+            return;
+        }
+
+        unsigned int dim = 1;
+        for (int i = 0; i < u.dim(); ++i) {
+            dim *= u.size(i);
+        }
+
+        std::memset(u.data(), 0, dim * sizeof(double));
+    }
+
+    void mul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& v)
+    {
+        la::weak_matrix<double> u_mat = u.as_matrix();
+        mul(u_mat, a.as_matrix(), v.as_matrix());
+    }
+
+    void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& b)
+    {
+        la::weak_matrix<double> u_mat = u.as_matrix();
+        ltmul(u_mat, a.as_matrix(), b.as_matrix());
+    }
+
+    void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
+        tensor_like<double> const& b)
+    {
+        la::weak_matrix<double> u_mat = u.as_matrix();
+        rtmul(u_mat, a.as_matrix(), b.as_matrix());
+    }
 }
