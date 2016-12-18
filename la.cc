@@ -382,4 +382,20 @@ namespace la {
         la::weak_matrix<double> u_mat = u.as_matrix();
         rtmul(u_mat, a.as_matrix(), b.as_matrix());
     }
+
+    void resize_as(tensor<double>& a, tensor_like<double> const& b)
+    {
+        std::vector<unsigned int> sizes;
+        for (int i = 0; i < b.dim(); ++i) {
+            sizes.push_back(b.size(i));
+        }
+        a.resize(sizes);
+    }
+
+    void emul(tensor_like<double>& z, tensor_like<double> const& u,
+        tensor_like<double> const& v)
+    {
+        la::weak_vector<double> z_vec = z.as_vector();
+        emul(z_vec, u.as_vector(), v.as_vector());
+    }
 }

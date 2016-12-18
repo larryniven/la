@@ -164,6 +164,9 @@ namespace la {
         virtual la::weak_vector<T> as_vector() const;
 
         virtual la::weak_matrix<T> as_matrix() const;
+
+        virtual unsigned int size() const;
+        virtual std::vector<unsigned int> sizes() const;
     };
 
     template <class T>
@@ -313,6 +316,10 @@ namespace la {
     void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b);
 
+    void resize_as(tensor<double>& a, tensor_like<double> const& b);
+
+    void emul(tensor_like<double>& z, tensor_like<double> const& u,
+        tensor_like<double> const& v);
 }
 
 namespace ebt {

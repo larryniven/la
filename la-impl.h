@@ -311,32 +311,46 @@ namespace la {
     template <class T>
     la::weak_vector<T> tensor_like<T>::as_vector() const
     {
-        if (dim() == 0) {
-            return la::weak_vector<T>(nullptr, 0);
-        }
-
-        unsigned int d = 1;
-        for (int i = 0; i < dim(); ++i) {
-            d *= size(i);
-        }
-
-        return la::weak_vector<T> { const_cast<T*>(data()), d };
+        return la::weak_vector<T> { const_cast<T*>(data()), size() };
     }
 
     template <class T>
     la::weak_matrix<T> tensor_like<T>::as_matrix() const
     {
         if (dim() == 0) {
-            return la::weak_matrix<T>(nullptr, 0, 0);
+            return la::weak_matrix<T> { const_cast<T*>(data()), 0, 0 };
         }
 
-        unsigned int row = 1;
-        for (int i = 0; i < dim() - 1; ++i) {
-            row *= size(i);
-        }
         unsigned int col = size(dim() - 1);
+        unsigned int row = size() / col;
 
         return la::weak_matrix<T> { const_cast<T*>(data()), row, col };
+    }
+
+    template <class T>
+    unsigned int tensor_like<T>::size() const
+    {
+        if (dim() == 0) {
+            return 0;
+        }
+
+        unsigned int d = 1;
+        for (int i = 0; i < dim(); ++i) {
+            d *= size(i);
+        }
+        return d;
+    }
+
+    template <class T>
+    std::vector<unsigned int> tensor_like<T>::sizes() const
+    {
+        std::vector<unsigned int> result;
+
+        for (int i = 0; i < dim(); ++i) {
+            result.push_back(size(i));
+        }
+
+        return result;
     }
 
     // tensor
