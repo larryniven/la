@@ -311,7 +311,7 @@ namespace la {
     template <class T>
     la::weak_vector<T> tensor_like<T>::as_vector() const
     {
-        return la::weak_vector<T> { const_cast<T*>(data()), size() };
+        return la::weak_vector<T> { const_cast<T*>(data()), vec_size() };
     }
 
     template <class T>
@@ -322,13 +322,13 @@ namespace la {
         }
 
         unsigned int col = size(dim() - 1);
-        unsigned int row = size() / col;
+        unsigned int row = vec_size() / col;
 
         return la::weak_matrix<T> { const_cast<T*>(data()), row, col };
     }
 
     template <class T>
-    unsigned int tensor_like<T>::size() const
+    unsigned int tensor_like<T>::vec_size() const
     {
         if (dim() == 0) {
             return 0;
@@ -361,8 +361,21 @@ namespace la {
     }
 
     template <class T>
-    tensor<T>::tensor(std::vector<T> data, std::vector<unsigned int> sizes)
+    tensor<T>::tensor(la::vector<T> data, std::vector<unsigned int> sizes)
         : data_(data), sizes_(sizes)
+    {
+    }
+
+    template <class T>
+    tensor<T>::tensor(la::vector_like<T> const& v)
+        : data_(v), sizes_({v.size()})
+    {
+    }
+
+    template <class T>
+    tensor<T>::tensor(la::matrix_like<T> const& m)
+        : data_(la::weak_vector<T>(const_cast<double*>(m.data()), m.rows() * m.cols()))
+        , sizes_({m.rows(), m.cols()})
     {
     }
 
@@ -391,7 +404,7 @@ namespace la {
     }
 
     template <class T>
-    T& tensor<T>::operator()(std::vector<unsigned int> indices)
+    T& tensor<T>::operator()(std::vector<int> indices)
     {
         assert(indices.size() == dim());
 
@@ -405,7 +418,7 @@ namespace la {
     }
 
     template <class T>
-    T const& tensor<T>::operator()(std::vector<unsigned int> indices) const
+    T const& tensor<T>::operator()(std::vector<int> indices) const
     {
         assert(indices.size() == dim());
 
@@ -419,7 +432,7 @@ namespace la {
     }
 
     template <class T>
-    T& tensor<T>::at(std::vector<unsigned int> indices)
+    T& tensor<T>::at(std::vector<int> indices)
     {
         assert(indices.size() == dim());
 
@@ -433,7 +446,7 @@ namespace la {
     }
 
     template <class T>
-    T const& tensor<T>::at(std::vector<unsigned int> indices) const
+    T const& tensor<T>::at(std::vector<int> indices) const
     {
         assert(indices.size() == dim());
 
@@ -487,6 +500,18 @@ namespace la {
     }
 
     template <class T>
+    weak_tensor<T>::weak_tensor(la::vector_like<T> const& v)
+        : data_(const_cast<T*>(v.data()))
+        , sizes_({v.size()})
+    {}
+
+    template <class T>
+    weak_tensor<T>::weak_tensor(la::matrix_like<T> const& m)
+        : data_(const_cast<T*>(m.data()))
+        , sizes_({m.rows(), m.cols()})
+    {}
+
+    template <class T>
     T* weak_tensor<T>::data()
     {
         return data_;
@@ -511,7 +536,7 @@ namespace la {
     }
 
     template <class T>
-    T& weak_tensor<T>::operator()(std::vector<unsigned int> indices)
+    T& weak_tensor<T>::operator()(std::vector<int> indices)
     {
         assert(indices.size() == dim());
 
@@ -525,7 +550,7 @@ namespace la {
     }
 
     template <class T>
-    T const& weak_tensor<T>::operator()(std::vector<unsigned int> indices) const
+    T const& weak_tensor<T>::operator()(std::vector<int> indices) const
     {
         assert(indices.size() == dim());
 
@@ -539,7 +564,7 @@ namespace la {
     }
 
     template <class T>
-    T& weak_tensor<T>::at(std::vector<unsigned int> indices)
+    T& weak_tensor<T>::at(std::vector<int> indices)
     {
         assert(indices.size() == dim());
 
@@ -553,7 +578,7 @@ namespace la {
     }
 
     template <class T>
-    T const& weak_tensor<T>::at(std::vector<unsigned int> indices) const
+    T const& weak_tensor<T>::at(std::vector<int> indices) const
     {
         assert(indices.size() == dim());
 
@@ -604,7 +629,7 @@ namespace ebt {
         template <class T>
         la::tensor<T> json_parser<la::tensor<T>>::parse(std::istream& is)
         {
-            json_parser<std::tuple<std::vector<int>, std::vector<T>>> parser;
+            json_parser<std::tuple<std::vector<int>, la::vector<T>>> parser;
             std::tuple<std::vector<int>, la::vector<T>> data = parser.parse(is);
 
             std::vector<unsigned int> sizes;
@@ -650,7 +675,7 @@ namespace ebt {
                 dim *= t.size(i);
             }
 
-            std::get<1>(data) = la::vector<T>(la::weak_vector<T>(t.data(), dim));
+            std::get<1>(data) = la::vector<T>(la::weak_vector<T>(const_cast<T*>(t.data()), dim));
 
             ebt::json::json_writer<std::tuple<std::vector<int>, la::vector<T>>> writer;
             writer.write(data, os);

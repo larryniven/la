@@ -155,18 +155,19 @@ namespace la {
         virtual unsigned int dim() const = 0;
         virtual unsigned int size(unsigned int d) const = 0;
 
-        virtual T& operator()(std::vector<unsigned int> indices) = 0;
-        virtual T const& operator()(std::vector<unsigned int> indices) const = 0;
+        virtual T& operator()(std::vector<int> indices) = 0;
+        virtual T const& operator()(std::vector<int> indices) const = 0;
 
-        virtual T& at(std::vector<unsigned int> indices) = 0;
-        virtual T const& at(std::vector<unsigned int> indices) const = 0;
+        virtual T& at(std::vector<int> indices) = 0;
+        virtual T const& at(std::vector<int> indices) const = 0;
 
-        virtual la::weak_vector<T> as_vector() const;
+        la::weak_vector<T> as_vector() const;
 
-        virtual la::weak_matrix<T> as_matrix() const;
+        la::weak_matrix<T> as_matrix() const;
 
-        virtual unsigned int size() const;
-        virtual std::vector<unsigned int> sizes() const;
+        std::vector<unsigned int> sizes() const;
+
+        unsigned int vec_size() const;
     };
 
     template <class T>
@@ -174,7 +175,9 @@ namespace la {
         : public tensor_like<T> {
 
         tensor();
-        tensor(std::vector<T> data, std::vector<unsigned int> sizes);
+        tensor(la::vector<T> data, std::vector<unsigned int> sizes);
+        explicit tensor(la::vector_like<T> const& v);
+        explicit tensor(la::matrix_like<T> const& m);
 
         virtual T* data();
         virtual T const* data() const;
@@ -182,11 +185,11 @@ namespace la {
         virtual unsigned int dim() const;
         virtual unsigned int size(unsigned int d) const;
 
-        virtual T& operator()(std::vector<unsigned int> indices);
-        virtual T const& operator()(std::vector<unsigned int> indices) const;
+        virtual T& operator()(std::vector<int> indices);
+        virtual T const& operator()(std::vector<int> indices) const;
 
-        virtual T& at(std::vector<unsigned int> indices);
-        virtual T const& at(std::vector<unsigned int> indices) const;
+        virtual T& at(std::vector<int> indices);
+        virtual T const& at(std::vector<int> indices) const;
 
         void resize(std::vector<unsigned int> sizes, T value = 0);
 
@@ -201,6 +204,8 @@ namespace la {
 
         weak_tensor(tensor_like<T>& t);
         weak_tensor(T *data, std::vector<unsigned int> sizes);
+        explicit weak_tensor(la::vector_like<T> const& v);
+        explicit weak_tensor(la::matrix_like<T> const& m);
 
         virtual T* data();
         virtual T const* data() const;
@@ -208,11 +213,11 @@ namespace la {
         virtual unsigned int dim() const;
         virtual unsigned int size(unsigned int d) const;
 
-        virtual T& operator()(std::vector<unsigned int> indices);
-        virtual T const& operator()(std::vector<unsigned int> indices) const;
+        virtual T& operator()(std::vector<int> indices);
+        virtual T const& operator()(std::vector<int> indices) const;
 
-        virtual T& at(std::vector<unsigned int> indices);
-        virtual T const& at(std::vector<unsigned int> indices) const;
+        virtual T& at(std::vector<int> indices);
+        virtual T const& at(std::vector<int> indices) const;
 
     private:
         T *data_;
@@ -254,6 +259,8 @@ namespace la {
     double dot(vector_like<double> const& u, vector_like<double> const& v);
 
     bool has_nan(vector_like<double> const& u);
+
+    void axpy(vector_like<double>& y, double a, vector_like<double> const& x);
 
     // matrix operation
 
@@ -305,9 +312,15 @@ namespace la {
 
     bool has_nan(matrix_like<double> const& m);
 
+    void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x);
+
     // tensor operation
 
+    void copy(tensor_like<double>& u, tensor_like<double> const& v);
+
     void zero(tensor_like<double>& m);
+
+    void imul(tensor_like<double>& u, double a);
 
     void mul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& v);
@@ -316,10 +329,27 @@ namespace la {
     void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b);
 
+    tensor<double> mul(tensor_like<double> const& m,
+        double a);
+    tensor<double> mul(tensor_like<double> const& a,
+        tensor_like<double> const& v);
+
     void resize_as(tensor<double>& a, tensor_like<double> const& b);
 
     void emul(tensor_like<double>& z, tensor_like<double> const& u,
         tensor_like<double> const& v);
+
+    void iadd(tensor_like<double>& a, tensor_like<double> const& b);
+
+    void isub(tensor_like<double>& a, tensor_like<double> const& b);
+
+    double dot(tensor_like<double> const& a, tensor_like<double> const& b);
+
+    double norm(tensor_like<double> const& v);
+
+    bool has_nan(tensor_like<double> const& m);
+
+    void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
 }
 
 namespace ebt {

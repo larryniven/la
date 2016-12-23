@@ -152,6 +152,13 @@ namespace la {
         return false;
     }
 
+    void axpy(vector_like<double>& y, double a, vector_like<double> const& x)
+    {
+        assert(y.size() == x.size());
+
+        cblas_daxpy(y.size(), a, x.data(), 1, y.data(), 1);
+    }
+
     void copy(matrix_like<double>& u, matrix_like<double> const& v)
     {
         assert(u.rows() == v.rows() && u.cols() == v.cols());
@@ -348,6 +355,19 @@ namespace la {
         return has_nan(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
     }
 
+    void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x)
+    {
+        assert(y.rows() == x.rows() && y.cols() == x.cols());
+
+        cblas_daxpy(y.rows() * y.cols(), a, x.data(), 1, y.data(), 1);
+    }
+
+    void copy(tensor_like<double>& u, tensor_like<double> const& v)
+    {
+        weak_vector<double> u_vec = u.as_vector();
+        copy(u_vec, v.as_vector());
+    }
+
     void zero(tensor_like<double>& u)
     {
         if (u.dim() == 0) {
@@ -362,25 +382,57 @@ namespace la {
         std::memset(u.data(), 0, dim * sizeof(double));
     }
 
+    void imul(tensor_like<double>& u, double a)
+    {
+        weak_vector<double> u_vec = u.as_vector();
+        imul(u_vec, a);
+    }
+
     void mul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& v)
     {
-        la::weak_matrix<double> u_mat = u.as_matrix();
+        weak_matrix<double> u_mat = u.as_matrix();
         mul(u_mat, a.as_matrix(), v.as_matrix());
     }
 
     void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b)
     {
-        la::weak_matrix<double> u_mat = u.as_matrix();
+        weak_matrix<double> u_mat = u.as_matrix();
         ltmul(u_mat, a.as_matrix(), b.as_matrix());
     }
 
     void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b)
     {
-        la::weak_matrix<double> u_mat = u.as_matrix();
+        weak_matrix<double> u_mat = u.as_matrix();
         rtmul(u_mat, a.as_matrix(), b.as_matrix());
+    }
+
+    tensor<double> mul(tensor_like<double> const& m,
+        double a)
+    {
+        tensor<double> result { m.as_vector() };
+
+        imul(result, a);
+
+        return result;
+    }
+
+    tensor<double> mul(tensor_like<double> const& a,
+        tensor_like<double> const& v)
+    {
+        tensor<double> result;
+
+        std::vector<unsigned int> sizes = a.sizes();
+        sizes.pop_back();
+        sizes.push_back(v.size(v.dim() - 1));
+
+        result.resize(sizes);
+
+        mul(result, a, v);
+
+        return result;
     }
 
     void resize_as(tensor<double>& a, tensor_like<double> const& b)
@@ -395,7 +447,41 @@ namespace la {
     void emul(tensor_like<double>& z, tensor_like<double> const& u,
         tensor_like<double> const& v)
     {
-        la::weak_vector<double> z_vec = z.as_vector();
+        weak_vector<double> z_vec = z.as_vector();
         emul(z_vec, u.as_vector(), v.as_vector());
     }
+
+    void iadd(tensor_like<double>& a, tensor_like<double> const& b)
+    {
+        weak_vector<double> a_vec = a.as_vector();
+        iadd(a_vec, b.as_vector());
+    }
+
+    void isub(tensor_like<double>& a, tensor_like<double> const& b)
+    {
+        weak_vector<double> a_vec = a.as_vector();
+        isub(a_vec, b.as_vector());
+    }
+
+    double dot(tensor_like<double> const& a, tensor_like<double> const& b)
+    {
+        return dot(a.as_vector(), b.as_vector());
+    }
+
+    double norm(tensor_like<double> const& v)
+    {
+        return norm(v.as_vector());
+    }
+
+    bool has_nan(tensor_like<double> const& a)
+    {
+        return has_nan(a.as_vector());
+    }
+
+    void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
+    {
+        weak_vector<double> y_vec = y.as_vector();
+        axpy(y_vec, a, x.as_vector());
+    }
+
 }
