@@ -161,13 +161,14 @@ namespace la {
         virtual T& at(std::vector<int> indices) = 0;
         virtual T const& at(std::vector<int> indices) const = 0;
 
+        virtual unsigned int vec_size() const = 0;
+
         la::weak_vector<T> as_vector() const;
 
         la::weak_matrix<T> as_matrix() const;
 
         std::vector<unsigned int> sizes() const;
 
-        unsigned int vec_size() const;
     };
 
     template <class T>
@@ -193,9 +194,13 @@ namespace la {
 
         void resize(std::vector<unsigned int> sizes, T value = 0);
 
+        virtual unsigned int vec_size() const;
+
     private:
         vector<T> data_;
         vector<unsigned int> sizes_;
+        unsigned int dim_;
+        unsigned int vec_size_;
     };
 
     template <class T>
@@ -219,11 +224,15 @@ namespace la {
         virtual T& at(std::vector<int> indices);
         virtual T const& at(std::vector<int> indices) const;
 
+        virtual unsigned int vec_size() const;
+
     private:
         T *data_;
-        unsigned int size_;
+        unsigned int vec_size_;
         vector<unsigned int> sizes_;
+        unsigned int dim_;
     };
+
 
     // vector operation
 
