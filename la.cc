@@ -364,49 +364,49 @@ namespace la {
 
     void copy(tensor_like<double>& u, tensor_like<double> const& v)
     {
-        weak_vector<double> u_vec = u.as_vector();
-        copy(u_vec, v.as_vector());
+        copy(u.as_vector(), v.as_vector());
     }
 
     void zero(tensor_like<double>& u)
     {
-        if (u.dim() == 0) {
-            return;
-        }
-
-        unsigned int dim = 1;
-        for (int i = 0; i < u.dim(); ++i) {
-            dim *= u.size(i);
-        }
-
-        std::memset(u.data(), 0, dim * sizeof(double));
+        std::memset(u.data(), 0, u.vec_size() * sizeof(double));
     }
 
     void imul(tensor_like<double>& u, double a)
     {
-        weak_vector<double> u_vec = u.as_vector();
-        imul(u_vec, a);
+        imul(u.as_vector(), a);
     }
 
     void mul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& v)
     {
-        weak_matrix<double> u_mat = u.as_matrix();
-        mul(u_mat, a.as_matrix(), v.as_matrix());
+        if (a.dim() == 1) {
+            ebt::accu_timer<1> timer;
+            lmul(u.as_vector(), a.as_vector(), v.as_matrix());
+        } else {
+            ebt::accu_timer<0> timer;
+            mul(u.as_matrix(), a.as_matrix(), v.as_matrix());
+        }
     }
 
     void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b)
     {
-        weak_matrix<double> u_mat = u.as_matrix();
-        ltmul(u_mat, a.as_matrix(), b.as_matrix());
+        if (a.dim() == 1 && b.dim() == 1) {
+            outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
+        } else {
+            ltmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
+        }
     }
 
     void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
         tensor_like<double> const& b)
     {
-        weak_matrix<double> u_mat = u.as_matrix();
-        rtmul(u_mat, a.as_matrix(), b.as_matrix());
+        if (a.dim() == 1) {
+            mul(u.as_vector(), b.as_matrix(), a.as_vector());
+        } else {
+            rtmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
+        }
     }
 
     tensor<double> mul(tensor_like<double> const& m,
@@ -437,30 +437,23 @@ namespace la {
 
     void resize_as(tensor<double>& a, tensor_like<double> const& b)
     {
-        std::vector<unsigned int> sizes;
-        for (int i = 0; i < b.dim(); ++i) {
-            sizes.push_back(b.size(i));
-        }
-        a.resize(sizes);
+        a.resize(b.sizes());
     }
 
     void emul(tensor_like<double>& z, tensor_like<double> const& u,
         tensor_like<double> const& v)
     {
-        weak_vector<double> z_vec = z.as_vector();
-        emul(z_vec, u.as_vector(), v.as_vector());
+        emul(z.as_vector(), u.as_vector(), v.as_vector());
     }
 
     void iadd(tensor_like<double>& a, tensor_like<double> const& b)
     {
-        weak_vector<double> a_vec = a.as_vector();
-        iadd(a_vec, b.as_vector());
+        iadd(a.as_vector(), b.as_vector());
     }
 
     void isub(tensor_like<double>& a, tensor_like<double> const& b)
     {
-        weak_vector<double> a_vec = a.as_vector();
-        isub(a_vec, b.as_vector());
+        isub(a.as_vector(), b.as_vector());
     }
 
     double dot(tensor_like<double> const& a, tensor_like<double> const& b)
@@ -480,8 +473,7 @@ namespace la {
 
     void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
     {
-        weak_vector<double> y_vec = y.as_vector();
-        axpy(y_vec, a, x.as_vector());
+        axpy(y.as_vector(), a, x.as_vector());
     }
 
 }

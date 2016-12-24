@@ -162,12 +162,13 @@ namespace la {
         virtual T const& at(std::vector<int> indices) const = 0;
 
         virtual unsigned int vec_size() const = 0;
+        virtual std::vector<unsigned int> sizes() const = 0;
 
-        la::weak_vector<T> as_vector() const;
+        virtual weak_vector<T>& as_vector() = 0;
+        virtual weak_vector<T> const& as_vector() const = 0;
 
-        la::weak_matrix<T> as_matrix() const;
-
-        std::vector<unsigned int> sizes() const;
+        virtual weak_matrix<T>& as_matrix() = 0;
+        virtual weak_matrix<T> const& as_matrix() const = 0;
 
     };
 
@@ -176,7 +177,8 @@ namespace la {
         : public tensor_like<T> {
 
         tensor();
-        tensor(la::vector<T> data, std::vector<unsigned int> sizes);
+        tensor(tensor<T> const& that);
+        tensor(vector<T> data, std::vector<unsigned int> sizes);
         explicit tensor(la::vector_like<T> const& v);
         explicit tensor(la::matrix_like<T> const& m);
 
@@ -194,13 +196,25 @@ namespace la {
 
         void resize(std::vector<unsigned int> sizes, T value = 0);
 
+        tensor<T>& operator=(tensor<T> const& that);
+
         virtual unsigned int vec_size() const;
+        virtual std::vector<unsigned int> sizes() const;
+
+        virtual weak_vector<T>& as_vector();
+        virtual weak_vector<T> const& as_vector() const;
+
+        virtual weak_matrix<T>& as_matrix();
+        virtual weak_matrix<T> const& as_matrix() const;
 
     private:
         vector<T> data_;
-        vector<unsigned int> sizes_;
+        std::vector<unsigned int> sizes_;
         unsigned int dim_;
         unsigned int vec_size_;
+
+        weak_vector<double> vec_;
+        weak_matrix<double> mat_;
     };
 
     template <class T>
@@ -209,8 +223,8 @@ namespace la {
 
         weak_tensor(tensor_like<T>& t);
         weak_tensor(T *data, std::vector<unsigned int> sizes);
-        explicit weak_tensor(la::vector_like<T> const& v);
-        explicit weak_tensor(la::matrix_like<T> const& m);
+        explicit weak_tensor(vector_like<T> const& v);
+        explicit weak_tensor(matrix_like<T> const& m);
 
         virtual T* data();
         virtual T const* data() const;
@@ -225,12 +239,22 @@ namespace la {
         virtual T const& at(std::vector<int> indices) const;
 
         virtual unsigned int vec_size() const;
+        virtual std::vector<unsigned int> sizes() const;
+
+        virtual weak_vector<T>& as_vector();
+        virtual weak_vector<T> const& as_vector() const;
+
+        virtual weak_matrix<T>& as_matrix();
+        virtual weak_matrix<T> const& as_matrix() const;
 
     private:
         T *data_;
         unsigned int vec_size_;
-        vector<unsigned int> sizes_;
+        std::vector<unsigned int> sizes_;
         unsigned int dim_;
+
+        weak_vector<double> vec_;
+        weak_matrix<double> mat_;
     };
 
 
