@@ -317,6 +317,13 @@ namespace la {
     }
 
     template <class T>
+    tensor<T>::tensor(tensor<T>&& that)
+        : data_(std::move(that.data_)), sizes_(std::move(that.sizes_)), dim_(that.dim_), vec_size_(that.vec_size_)
+        , vec_(data_.data(), vec_size_)
+        , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+    {}
+
+    template <class T>
     tensor<T>::tensor(tensor<T> const& that)
         : data_(that.data_), sizes_(that.sizes_), dim_(that.dim_), vec_size_(that.vec_size_)
         , vec_(data_.data(), vec_size_)

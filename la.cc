@@ -221,11 +221,13 @@ namespace la {
         vector_like<double> const& v)
     {
         if (!(u.size() == a.rows() && a.cols() == v.size())) {
-            std::cout << "assertion u.size() == a.rows() && a.cols() == v.size() fails" << std::endl;
-            std::cout << "u.size() = " << u.size() << std::endl;
-            std::cout << "a.rows() = " << a.rows() << std::endl;
-            std::cout << "a.cols() = " << a.cols() << std::endl;
-            std::cout << "v.size() = " << v.size() << std::endl;
+            throw std::logic_error(
+                "assertion u.size() == a.rows() && a.cols() == v.size() fails\n"
+                "u.size() = " + std::to_string(u.size()) + "\n"
+                "a.rows() = " + std::to_string(a.rows()) + "\n"
+                "a.cols() = " + std::to_string(a.cols()) + "\n"
+                "v.size() = " + std::to_string(v.size())
+            );
         }
 
         cblas_dgemv(CblasRowMajor, CblasNoTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),
@@ -249,11 +251,13 @@ namespace la {
         matrix_like<double> const& a)
     {
         if (!(u.size() == a.cols() && a.rows() == v.size())) {
-            std::cout << "assertion u.size() == a.cols() && a.rows() == v.size() fails" << std::endl;
-            std::cout << "u.size() = " << u.size() << std::endl;
-            std::cout << "a.cols() = " << a.cols() << std::endl;
-            std::cout << "a.rows() = " << a.rows() << std::endl;
-            std::cout << "v.size() = " << v.size() << std::endl;
+            throw std::logic_error(
+                "assertion u.size() == a.rows() && a.cols() == v.size() fails\n"
+                "u.size() = " + std::to_string(u.size()) + "\n"
+                "a.rows() = " + std::to_string(a.rows()) + "\n"
+                "a.cols() = " + std::to_string(a.cols()) + "\n"
+                "v.size() = " + std::to_string(v.size())
+            );
         }
 
         cblas_dgemv(CblasRowMajor, CblasTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),

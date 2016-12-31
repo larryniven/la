@@ -177,6 +177,7 @@ namespace la {
         : public tensor_like<T> {
 
         tensor();
+        tensor(tensor<T>&& that);
         tensor(tensor<T> const& that);
         tensor(vector<T> data, std::vector<unsigned int> sizes);
         explicit tensor(la::vector_like<T> const& v);
