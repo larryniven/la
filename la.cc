@@ -108,8 +108,13 @@ namespace la {
     {
         assert(u.size() == v.size() && z.size() == v.size());
 
-        cblas_dgbmv(CblasRowMajor, CblasNoTrans, u.size(), u.size(), 0, 0,
-            1.0, u.data(), 1, v.data(), 1, 1.0, z.data(), 1);
+        double *z_data = z.data();
+        double const *u_data = u.data();
+        double const *v_data = v.data();
+
+        for (int i = 0; i < z.size(); ++i) {
+            z_data[i] = u_data[i] * v_data[i];
+        }
     }
 
     void iemul(vector_like<double>& u, vector_like<double> const& v)

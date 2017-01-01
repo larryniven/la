@@ -76,6 +76,21 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
         ebt::assert_equals(v(12), t({1, 0, 0}));
         ebt::assert_equals(v(13), t({1, 0, 1}));
     }},
+
+    {"test-large-emul", []() {
+        la::tensor<double> v;
+        v.resize({474 * 41 * 61 * 61}, 1);
+
+        la::tensor<double> u;
+        u.resize({474 * 41 * 61 * 61}, 2);
+
+        la::tensor<double> z;
+        z.resize({474 * 41 * 61 * 61});
+
+        la::emul(z, u, v);
+
+        ebt::assert_equals(2, z({0}));
+    }},
 };
 
 int main()
