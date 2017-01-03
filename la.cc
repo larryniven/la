@@ -113,7 +113,7 @@ namespace la {
         double const *v_data = v.data();
 
         for (int i = 0; i < z.size(); ++i) {
-            z_data[i] = u_data[i] * v_data[i];
+            z_data[i] += u_data[i] * v_data[i];
         }
     }
 
