@@ -368,7 +368,7 @@ namespace la {
     tensor<double> mul(tensor_like<double> const& a,
         tensor_like<double> const& v);
 
-    void resize_as(tensor<double>& a, tensor_like<double> const& b);
+    void resize_as(tensor<double>& a, tensor_like<double> const& b, double value = 0);
 
     void emul(tensor_like<double>& z, tensor_like<double> const& u,
         tensor_like<double> const& v);

@@ -444,9 +444,9 @@ namespace la {
         return result;
     }
 
-    void resize_as(tensor<double>& a, tensor_like<double> const& b)
+    void resize_as(tensor<double>& a, tensor_like<double> const& b, double value)
     {
-        a.resize(b.sizes());
+        a.resize(b.sizes(), value);
     }
 
     void emul(tensor_like<double>& z, tensor_like<double> const& u,
