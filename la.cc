@@ -88,7 +88,7 @@ namespace la {
     {
         vector<double> result { u };
 
-        isub(result, u);
+        isub(result, v);
 
         return result;
     }
