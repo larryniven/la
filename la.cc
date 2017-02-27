@@ -485,4 +485,47 @@ namespace la {
         axpy(y.as_vector(), a, x.as_vector());
     }
 
+    void corr_linearize(la::tensor_like<double>& result,
+        la::tensor_like<double> const& u,
+        int f1, int f2)
+    {
+        assert(u.dim() >= 2);
+
+        unsigned int d3 = u.vec_size() / (u.size(0) * u.size(1));
+
+        la::weak_tensor<double> u3 { const_cast<double*>(u.data()), { u.size(0), u.size(1), d3 } };
+
+        int z = 0;
+
+        double *result_data = result.data();
+        double const *u3_data = u3.data();
+
+        unsigned int s0 = u3.size(0);
+        unsigned int s1 = u3.size(1);
+        unsigned int s2 = u3.size(2);
+
+        for (int i = 0; i < s0; ++i) {
+            for (int j = 0; j < s1; ++j) {
+
+                for (int a = 0; a < f1; ++a) {
+                    for (int b = 0; b < f2; ++b) {
+                        int base = (i + a - (f1 / 2)) * s1 * s2 + (j + b - (f2 / 2)) * s2;
+
+                        if (i + a - (f1 / 2) < 0 || j + b - (f2 / 2) < 0
+                                || i + a - (f1 / 2) >= s0 || j + b - (f2 / 2) >= s1) {
+                            // do nothing
+                            z += s2;
+                        } else {
+                            for (int k = 0; k < s2; ++k) {
+                                result_data[z] = u3_data[base + k];
+                                ++z;
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
 }

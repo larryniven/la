@@ -384,6 +384,10 @@ namespace la {
     bool has_nan(tensor_like<double> const& m);
 
     void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
+
+    void corr_linearize(la::tensor_like<double>& result,
+        la::tensor_like<double> const& u, int f1, int f2);
+
 }
 
 namespace ebt {
