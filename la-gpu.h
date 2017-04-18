@@ -6,7 +6,6 @@
 #include <cublas_v2.h>
 #include <vector>
 #include <cassert>
-#include <thrust/tuple.h>
 #include "ebt/ebt.h"
 
 namespace la {
@@ -55,7 +54,7 @@ namespace la {
             explicit vector(vector_like<T> const& v);
             explicit vector(la::vector_like<T> const& v);
 
-            vector<T>& operator=(vector<T> const& v);
+            vector<T>& operator=(vector_like<T> const& v);
             vector<T>& operator=(vector<T>&& v);
 
             virtual T* data();
@@ -114,13 +113,13 @@ namespace la {
 
             virtual unsigned int rows() const = 0;
             virtual unsigned int cols() const = 0;
-
         };
 
         template <class T>
         struct matrix : public matrix_like<T> {
 
             matrix();
+            matrix(matrix<T>&& that);
             explicit matrix(matrix_like<T> const& m);
             explicit matrix(la::matrix_like<T> const& m);
 
@@ -162,6 +161,78 @@ namespace la {
             unsigned int cols_;
         };
 
+        // tensor
+
+        template <class T>
+        struct tensor_like {
+            virtual ~tensor_like();
+
+            virtual T* data() = 0;
+            virtual T const* data() const = 0;
+
+            virtual unsigned int dim() const = 0;
+            virtual unsigned int size(unsigned int d) const = 0;
+
+            virtual unsigned int vec_size() const = 0;
+            virtual std::vector<unsigned int> sizes() const = 0;
+
+            virtual weak_vector<T>& as_vector() = 0;
+            virtual weak_vector<T> const& as_vector() const = 0;
+
+            virtual weak_matrix<T>& as_matrix() = 0;
+            virtual weak_matrix<T> const& as_matrix() const = 0;
+
+        };
+
+        template <class T>
+        struct tensor
+            : public tensor_like<T> {
+
+            tensor();
+            tensor(tensor<T>&& that);
+            tensor(tensor<T> const& that);
+            tensor(la::tensor_like<T> const& ht);
+            tensor(vector<T>&& data, std::vector<unsigned int> sizes);
+            tensor(vector_like<T> const& data, std::vector<unsigned int> sizes);
+            explicit tensor(vector_like<T> const& v);
+            explicit tensor(matrix_like<T> const& m);
+
+            virtual T* data();
+            virtual T const* data() const;
+
+            virtual unsigned int dim() const;
+            virtual unsigned int size(unsigned int d) const;
+
+            void resize(std::vector<unsigned int> sizes, T value = 0);
+
+            tensor<T>& operator=(tensor<T>&& that);
+            tensor<T>& operator=(tensor<T> const& that);
+
+            virtual unsigned int vec_size() const;
+            virtual std::vector<unsigned int> sizes() const;
+
+            virtual weak_vector<T>& as_vector();
+            virtual weak_vector<T> const& as_vector() const;
+
+            virtual weak_matrix<T>& as_matrix();
+            virtual weak_matrix<T> const& as_matrix() const;
+
+        private:
+            vector<T> data_;
+            std::vector<unsigned int> sizes_;
+            unsigned int dim_;
+            unsigned int vec_size_;
+
+            weak_vector<double> vec_;
+            weak_matrix<double> mat_;
+        };
+
+        template <class T>
+        la::tensor<T> to_host(tensor_like<T> const& t);
+
+        template <class T>
+        void to_device(tensor_like<T>& dt, la::tensor_like<T> const& ht);
+
         // vector operation
 
         void copy(vector_like<double>& u, vector_like<double> const& v);
@@ -169,13 +240,20 @@ namespace la {
         void zero(vector_like<double>& v);
 
         void imul(vector_like<double>& u, double d);
+        vector<double> mul(vector<double>&& u, double d);
         vector<double> mul(vector_like<double> const& u, double d);
 
         void iadd(vector_like<double>& u, vector_like<double> const& v);
         vector<double> add(vector_like<double> const& u,
             vector_like<double> const& v);
+        vector<double> add(vector<double>&& u,
+            vector_like<double> const& v);
+        vector<double> add(vector_like<double> const& u,
+            vector<double>&& v);
 
         void isub(vector_like<double>& u, vector_like<double> const& v);
+        vector<double> sub(vector_like<double> const& u, vector_like<double> const& v);
+
         void idiv(vector_like<double>& u, vector_like<double> const& v);
 
         void emul(vector_like<double>& z, vector_like<double> const& u,
@@ -188,11 +266,19 @@ namespace la {
 
         double dot(vector_like<double> const& u, vector_like<double> const& v);
 
+        bool has_nan(vector_like<double> const& u);
+
+        void axpy(vector_like<double>& y, double a, vector_like<double> const& x);
+
         // matrix operation
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v);
 
         void zero(matrix_like<double>& m);
+
+        void imul(matrix_like<double>& u, double d);
+        matrix<double> mul(matrix<double>&& u, double d);
+        matrix<double> mul(matrix_like<double> const& u, double d);
 
         void iadd(matrix_like<double>& u, matrix_like<double> const& v);
         void isub(matrix_like<double>& u, matrix_like<double> const& v);
@@ -202,22 +288,74 @@ namespace la {
         vector<double> mul(matrix_like<double> const& a,
             vector_like<double> const& v);
 
-        vector<double> lmul(matrix_like<double> const& u,
-            vector_like<double> const& v);
+        void lmul(vector_like<double>& u, 
+            vector_like<double> const& v, matrix_like<double> const& a);
+        vector<double> lmul(vector_like<double> const& v,
+            matrix_like<double> const& a);
+
+        void mul(matrix_like<double>& u, matrix_like<double> const& a,
+            matrix_like<double> const& b);
+        matrix<double> mul(matrix_like<double> const& a,
+            matrix_like<double> const& b);
+
+        void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
+            matrix_like<double> const& b);
+        void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
+            matrix_like<double> const& b);
 
         double norm(matrix_like<double> const& v);
 
         vector<double> tensor_prod(vector_like<double> const& a,
             vector_like<double> const& b);
 
+        void outer_prod(matrix_like<double>& result,
+            vector_like<double> const& a,
+            vector_like<double> const& b);
+
         matrix<double> outer_prod(vector_like<double> const& a,
             vector_like<double> const& b);
 
-        struct idiv_op {
-            template <class T>
-            __host__ __device__
-            void operator()(T t) const;
-        };
+        bool has_nan(matrix_like<double> const& m);
+
+        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x);
+
+        // tensor operation
+
+        void copy(tensor_like<double>& u, tensor_like<double> const& v);
+
+        void zero(tensor_like<double>& m);
+
+        void imul(tensor_like<double>& u, double a);
+
+        void mul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& v);
+        void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b);
+        void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b);
+
+        tensor<double> mul(tensor_like<double> const& m,
+            double a);
+        tensor<double> mul(tensor_like<double> const& a,
+            tensor_like<double> const& v);
+
+        void resize_as(tensor<double>& a, tensor_like<double> const& b, double value = 0);
+
+        void emul(tensor_like<double>& z, tensor_like<double> const& u,
+            tensor_like<double> const& v);
+
+        void iadd(tensor_like<double>& a, tensor_like<double> const& b);
+
+        void isub(tensor_like<double>& a, tensor_like<double> const& b);
+
+        double dot(tensor_like<double> const& a, tensor_like<double> const& b);
+
+        double norm(tensor_like<double> const& v);
+
+        bool has_nan(tensor_like<double> const& m);
+
+        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
+
     }
 }
 

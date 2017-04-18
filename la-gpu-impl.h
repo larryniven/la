@@ -56,15 +56,15 @@ namespace la {
         }
 
         template <class T>
-        vector<T>& vector<T>::operator=(vector<T> const& v)
+        vector<T>& vector<T>::operator=(vector_like<T> const& v)
         {
-            if (size_ == v.size_) {
+            if (size_ == v.size()) {
                 cudaMemcpy(data_, v.data(), v.size() * sizeof(T), cudaMemcpyDeviceToDevice);
             } else {
                 cudaFree(data_);
                 cudaMalloc(&data_, v.size() * sizeof(T));
                 cudaMemcpy(data_, v.data(), v.size() * sizeof(T), cudaMemcpyDeviceToDevice);
-                size_ = v.size_;
+                size_ = v.size();
             }
 
             return *this;
@@ -222,16 +222,22 @@ namespace la {
         {}
 
         template <class T>
-        matrix<T>::matrix(matrix_like<T> const& m)
-            : data_(m.data_), rows_(m.rows_), cols_(m.cols_)
+        matrix<T>::matrix(matrix<T>&& that)
+            : data_(std::move(that.data_)), rows_(that.rows_), cols_(that.cols_)
         {}
+
+        template <class T>
+        matrix<T>::matrix(matrix_like<T> const& m)
+            : data_(), rows_(m.rows()), cols_(m.cols())
+        {
+            data_ = weak_vector<T>{const_cast<T*>(m.data()), m.rows() * m.cols()};
+        }
 
         template <class T>
         matrix<T>::matrix(la::matrix_like<T> const& m)
         {
-            la::matrix<T> mT = la::trans(m);
             data_.resize(m.rows() * m.cols());
-            cublasSetVector(m.rows() * m.cols(), sizeof(T), mT.data(), 1, data_.data(), 1);
+            cublasSetVector(m.rows() * m.cols(), sizeof(T), m.data(), 1, data_.data(), 1);
             rows_ = m.rows();
             cols_ = m.cols();
         }
@@ -272,18 +278,17 @@ namespace la {
         la::matrix<T> to_host(matrix_like<T> const& m)
         {
             la::matrix<T> result;
-            result.resize(m.cols(), m.rows());
-            cublasGetMatrix(m.rows(), m.cols(), sizeof(T), m.data(), m.rows(), result.data(), m.rows()); 
-            return la::trans(result);
+            result.resize(m.rows(), m.cols());
+            cublasGetVector(m.rows() * m.cols(), sizeof(T), m.data(), 1, result.data(), 1); 
+            return result;
         }
 
         template <class T>
         void to_device(matrix_like<T>& dm, la::matrix_like<T> const& hm)
         {
-            assert(dm.rows() == hm.rows() && dm.cols() == dm.cols());
+            assert(dm.rows() == hm.rows() && dm.cols() == hm.cols());
 
-            la::matrix<T> mT = la::trans(hm);
-            cublasSetMatrix(dm.rows(), dm.cols(), sizeof(T), mT.data(), dm.rows(), dm.data(), dm.rows());
+            cublasSetVector(dm.rows() * dm.cols(), sizeof(T), hm.data(), 1, dm.data(), 1);
         }
 
         // weak_matrix
@@ -322,11 +327,206 @@ namespace la {
             return cols_;
         }
 
+        // tensor_like
+
         template <class T>
-        __host__ __device__
-        void idiv_op::operator()(T t) const
+        tensor_like<T>::~tensor_like()
+        {}
+
+        // tensor
+
+        template <class T>
+        tensor<T>::tensor()
+            : data_(), sizes_(), dim_(0), vec_size_(0), vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
         {
-            thrust::get<0>(t) /= thrust::get<1>(t);
+        }
+
+        template <class T>
+        tensor<T>::tensor(tensor<T>&& that)
+            : data_(std::move(that.data_)), sizes_(std::move(that.sizes_)), dim_(that.dim_), vec_size_(that.vec_size_)
+            , vec_(data_.data(), vec_size_)
+            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+        {}
+
+        template <class T>
+        tensor<T>::tensor(tensor<T> const& that)
+            : data_(that.data_), sizes_(that.sizes_), dim_(that.dim_), vec_size_(that.vec_size_)
+            , vec_(data_.data(), vec_size_)
+            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+        {}
+
+        template <class T>
+        tensor<T>::tensor(la::tensor_like<T> const& ht)
+            : data_(ht.as_vector()), sizes_(ht.sizes()), dim_(ht.dim()), vec_size_(ht.vec_size())
+            , vec_(data_.data(), vec_size_)
+            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+        {}
+
+        template <class T>
+        tensor<T>::tensor(vector<T>&& data, std::vector<unsigned int> sizes)
+            : data_(std::move(data)), sizes_(sizes), dim_(0), vec_size_(0)
+            , vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
+        {
+            dim_ = sizes_.size();
+
+            if (dim_ != 0) {
+                unsigned int d = 1;
+                for (int i = 0; i < dim_; ++i) {
+                    d *= sizes_[i];
+                }
+
+                vec_size_ = d;
+
+                vec_ = weak_vector<T>{data_.data(), vec_size_};
+                mat_ = weak_matrix<T>{data_.data(), d / sizes_.back(), sizes_.back()};
+            } else {
+                vec_size_ = 0;
+                vec_ = weak_vector<T>{data_.data(), 0};
+                mat_ = weak_matrix<T>{data_.data(), 0, 0};
+            }
+        }
+
+        template <class T>
+        tensor<T>::tensor(vector_like<T> const& data, std::vector<unsigned int> sizes)
+            : tensor(vector<T>(data), sizes)
+        {}
+
+        template <class T>
+        tensor<T>::tensor(vector_like<T> const& v)
+            : tensor(v, {v.size()})
+        {}
+
+        template <class T>
+        tensor<T>::tensor(matrix_like<T> const& m)
+            : tensor(weak_vector<T>(const_cast<double*>(m.data()),
+                m.rows() * m.cols()), {m.rows(), m.cols()})
+        {}
+
+        template <class T>
+        T* tensor<T>::data()
+        {
+            return data_.data();
+        }
+
+        template <class T>
+        T const* tensor<T>::data() const
+        {
+            return data_.data();
+        }
+
+        template <class T>
+        unsigned int tensor<T>::size(unsigned int d) const
+        {
+            return sizes_.at(d);
+        }
+
+        template <class T>
+        void tensor<T>::resize(std::vector<unsigned int> new_sizes, T value)
+        {
+            if (new_sizes.size() == 0) {
+                sizes_ = std::vector<unsigned int>();
+                data_.resize(0);
+                dim_ = 0;
+                vec_size_ = 0;
+
+                vec_ = weak_vector<T>{data_.data(), 0};
+                mat_ = weak_matrix<T>{data_.data(), 0, 0};
+            } else {
+                unsigned int d = 1;
+
+                for (auto& s: new_sizes) {
+                    d *= s;
+                }
+
+                sizes_ = new_sizes;
+                data_.resize(d, value);
+
+                dim_ = sizes_.size();
+                vec_size_ = d;
+
+                vec_ = weak_vector<T>{data_.data(), vec_size_};
+                mat_ = weak_matrix<T>{data_.data(), d / sizes_.back(), sizes_.back()};
+            }
+        }
+
+        template <class T>
+        tensor<T>& tensor<T>::operator=(tensor<T>&& that)
+        {
+            data_ = std::move(that.data_);
+            dim_ = that.dim_;
+            sizes_ = std::move(that.sizes_);
+            vec_size_ = that.vec_size_;
+            vec_ = weak_vector<T>(data_.data(), vec_size_);
+            mat_ = weak_matrix<T>(data_.data(), vec_size_ / sizes_.back(), sizes_.back());
+
+            return *this;
+        }
+
+        template <class T>
+        tensor<T>& tensor<T>::operator=(tensor<T> const& that)
+        {
+            data_ = that.data_;
+            dim_ = that.dim_;
+            sizes_ = that.sizes_;
+            vec_size_ = that.vec_size_;
+            vec_ = weak_vector<T>(data_.data(), vec_size_);
+            mat_ = weak_matrix<T>(data_.data(), vec_size_ / sizes_.back(), sizes_.back());
+
+            return *this;
+        }
+
+        template <class T>
+        unsigned int tensor<T>::dim() const
+        {
+            return dim_;
+        }
+
+        template <class T>
+        unsigned int tensor<T>::vec_size() const
+        {
+            return vec_size_;
+        }
+
+        template <class T>
+        std::vector<unsigned int> tensor<T>::sizes() const
+        {
+            return sizes_;
+        }
+
+        template <class T>
+        weak_vector<T>& tensor<T>::as_vector()
+        {
+            return vec_;
+        }
+
+        template <class T>
+        weak_vector<T> const& tensor<T>::as_vector() const
+        {
+            return vec_;
+        }
+
+        template <class T>
+        weak_matrix<T>& tensor<T>::as_matrix()
+        {
+            return mat_;
+        }
+
+        template <class T>
+        weak_matrix<T> const& tensor<T>::as_matrix() const
+        {
+            return mat_;
+        }
+
+        template <class T>
+        la::tensor<T> to_host(tensor_like<T> const& t)
+        {
+            la::vector<T> hv = to_host(t.as_vector());
+            return la::tensor<T>(hv, t.sizes());
+        }
+
+        template <class T>
+        void to_device(tensor_like<T>& dt, la::tensor_like<T> const& ht)
+        {
         }
 
     }

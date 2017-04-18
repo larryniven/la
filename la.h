@@ -91,6 +91,9 @@ namespace la {
         virtual T& at(unsigned int r, unsigned int c) = 0;
         virtual T const& at(unsigned int r, unsigned int c) const = 0;
 
+        virtual vector_like<T>& as_vector();
+        virtual vector_like<T> const& as_vector() const;
+
     };
 
     template <class T>
@@ -114,6 +117,9 @@ namespace la {
         virtual T const& at(unsigned int r, unsigned int c) const;
 
         void resize(unsigned int rows, unsigned int cols, T value = 0);
+
+        virtual vector_like<T>& as_vector();
+        virtual vector_like<T> const& as_vector() const;
 
     private:
         vector<T> data_;
@@ -139,8 +145,11 @@ namespace la {
         virtual T& at(unsigned int r, unsigned int c);
         virtual T const& at(unsigned int r, unsigned int c) const;
 
+        virtual vector_like<T>& as_vector();
+        virtual vector_like<T> const& as_vector() const;
+
     private:
-        T *data_;
+        weak_vector<T> data_;
         unsigned int rows_;
         unsigned int cols_;
     };
@@ -179,9 +188,10 @@ namespace la {
         tensor();
         tensor(tensor<T>&& that);
         tensor(tensor<T> const& that);
-        tensor(vector<T> data, std::vector<unsigned int> sizes);
-        explicit tensor(la::vector_like<T> const& v);
-        explicit tensor(la::matrix_like<T> const& m);
+        tensor(vector<T>&& data, std::vector<unsigned int> sizes);
+        tensor(vector_like<T> const& data, std::vector<unsigned int> sizes);
+        explicit tensor(vector_like<T> const& v);
+        explicit tensor(matrix_like<T> const& m);
 
         virtual T* data();
         virtual T const* data() const;
@@ -197,6 +207,7 @@ namespace la {
 
         void resize(std::vector<unsigned int> sizes, T value = 0);
 
+        tensor<T>& operator=(tensor<T>&& that);
         tensor<T>& operator=(tensor<T> const& that);
 
         virtual unsigned int vec_size() const;

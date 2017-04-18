@@ -240,28 +240,40 @@ namespace la {
         cols_ = cols;
     }
 
-    // weak_matrix
-
     template <class T>
-    weak_matrix<T>::weak_matrix(matrix_like<T>& data)
-        : data_(data.data()), rows_(data.rows()), cols_(data.cols())
-    {} 
-
-    template <class T>
-    weak_matrix<T>::weak_matrix(T *data, unsigned int rows, unsigned int cols)
-        : data_(data), rows_(rows), cols_(cols)
-    {} 
-
-    template <class T>
-    T* weak_matrix<T>::data()
+    vector_like<T>& matrix<T>::as_vector()
     {
         return data_;
     }
 
     template <class T>
-    T const* weak_matrix<T>::data() const
+    vector_like<T> const& matrix<T>::as_vector() const
     {
         return data_;
+    }
+
+    // weak_matrix
+
+    template <class T>
+    weak_matrix<T>::weak_matrix(matrix_like<T>& data)
+        : data_(data.data(), data.rows() * data.cols()), rows_(data.rows()), cols_(data.cols())
+    {} 
+
+    template <class T>
+    weak_matrix<T>::weak_matrix(T *data, unsigned int rows, unsigned int cols)
+        : data_(data, rows * cols), rows_(rows), cols_(cols)
+    {} 
+
+    template <class T>
+    T* weak_matrix<T>::data()
+    {
+        return data_.data();
+    }
+
+    template <class T>
+    T const* weak_matrix<T>::data() const
+    {
+        return data_.data();
     }
 
     template <class T>
@@ -279,27 +291,39 @@ namespace la {
     template <class T>
     T& weak_matrix<T>::operator()(unsigned int r, unsigned int c)
     {
-        return data_[r * cols_ + c];
+        return data_(r * cols_ + c);
     }
 
     template <class T>
     T const& weak_matrix<T>::operator()(unsigned int r, unsigned int c) const
     {
-        return data_[r * cols_ + c];
+        return data_(r * cols_ + c);
     }
 
     template <class T>
     T& weak_matrix<T>::at(unsigned int r, unsigned int c)
     {
         assert(r < rows_ && c < cols_);
-        return data_[r * cols_ + c];
+        return data_(r * cols_ + c);
     }
 
     template <class T>
     T const& weak_matrix<T>::at(unsigned int r, unsigned int c) const
     {
         assert(r < rows_ && c < cols_);
-        return data_[r * cols_ + c];
+        return data_(r * cols_ + c);
+    }
+
+    template <class T>
+    vector_like<T>& weak_matrix<T>::as_vector()
+    {
+        return data_;
+    }
+
+    template <class T>
+    vector_like<T> const& weak_matrix<T>::as_vector() const
+    {
+        return data_;
     }
 
     // tensor_like
@@ -331,8 +355,8 @@ namespace la {
     {}
 
     template <class T>
-    tensor<T>::tensor(vector<T> data, std::vector<unsigned int> sizes)
-        : data_(data), sizes_(sizes), dim_(0), vec_size_(0)
+    tensor<T>::tensor(vector<T>&& data, std::vector<unsigned int> sizes)
+        : data_(std::move(data)), sizes_(sizes), dim_(0), vec_size_(0)
         , vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
     {
         dim_ = sizes_.size();
@@ -355,14 +379,19 @@ namespace la {
     }
 
     template <class T>
+    tensor<T>::tensor(vector_like<T> const& data, std::vector<unsigned int> sizes)
+        : tensor(vector<T>(data), sizes)
+    {}
+
+    template <class T>
     tensor<T>::tensor(vector_like<T> const& v)
-        : tensor(la::vector<T>(v), {v.size()})
+        : tensor(v, {v.size()})
     {}
 
     template <class T>
     tensor<T>::tensor(matrix_like<T> const& m)
-        : tensor(la::vector<T>(la::weak_vector<T>(
-            const_cast<double*>(m.data()), m.rows() * m.cols())), {m.rows(), m.cols()})
+        : tensor(weak_vector<T>(
+            const_cast<double*>(m.data()), m.rows() * m.cols()), {m.rows(), m.cols()})
     {}
 
     template <class T>
@@ -466,6 +495,19 @@ namespace la {
             vec_ = weak_vector<T>{data_.data(), vec_size_};
             mat_ = weak_matrix<T>{data_.data(), d / sizes_.back(), sizes_.back()};
         }
+    }
+
+    template <class T>
+    tensor<T>& tensor<T>::operator=(tensor<T>&& that)
+    {
+        data_ = std::move(that.data_);
+        dim_ = std::move(that.dim_);
+        sizes_ = std::move(that.sizes_);
+        vec_size_ = that.vec_size_;
+        vec_ = weak_vector<T>(data_.data(), vec_size_);
+        mat_ = weak_matrix<T>(data_.data(), vec_size_ / sizes_.back(), sizes_.back());
+
+        return *this;
     }
 
     template <class T>
@@ -662,25 +704,25 @@ namespace la {
     }
 
     template <class T>
-    la::weak_vector<T>& weak_tensor<T>::as_vector()
+    weak_vector<T>& weak_tensor<T>::as_vector()
     {
         return vec_;
     }
 
     template <class T>
-    la::weak_vector<T> const& weak_tensor<T>::as_vector() const
+    weak_vector<T> const& weak_tensor<T>::as_vector() const
     {
         return vec_;
     }
 
     template <class T>
-    la::weak_matrix<T>& weak_tensor<T>::as_matrix()
+    weak_matrix<T>& weak_tensor<T>::as_matrix()
     {
         return mat_;
     }
 
     template <class T>
-    la::weak_matrix<T> const& weak_tensor<T>::as_matrix() const
+    weak_matrix<T> const& weak_tensor<T>::as_matrix() const
     {
         return mat_;
     }

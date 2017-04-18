@@ -205,8 +205,8 @@ namespace la {
         assert(u.rows() == v.rows());
         assert(u.cols() == v.cols());
 
-        la::weak_vector<double> a {u.data(), u.rows() * u.cols()};
-        la::weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
+        weak_vector<double> a {u.data(), u.rows() * u.cols()};
+        weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
 
         iadd(a, b);
     }
@@ -216,8 +216,8 @@ namespace la {
         assert(u.rows() == v.rows());
         assert(u.cols() == v.cols());
 
-        la::weak_vector<double> a {u.data(), u.rows() * u.cols()};
-        la::weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
+        weak_vector<double> a {u.data(), u.rows() * u.cols()};
+        weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
 
         isub(a, b);
     }
@@ -390,10 +390,8 @@ namespace la {
         tensor_like<double> const& v)
     {
         if (a.dim() == 1) {
-            ebt::accu_timer<1> timer;
             lmul(u.as_vector(), a.as_vector(), v.as_matrix());
         } else {
-            ebt::accu_timer<0> timer;
             mul(u.as_matrix(), a.as_matrix(), v.as_matrix());
         }
     }
