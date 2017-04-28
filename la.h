@@ -91,8 +91,8 @@ namespace la {
         virtual T& at(unsigned int r, unsigned int c) = 0;
         virtual T const& at(unsigned int r, unsigned int c) const = 0;
 
-        virtual vector_like<T>& as_vector();
-        virtual vector_like<T> const& as_vector() const;
+        virtual vector_like<T>& as_vector() = 0;
+        virtual vector_like<T> const& as_vector() const = 0;
 
     };
 
@@ -173,11 +173,11 @@ namespace la {
         virtual unsigned int vec_size() const = 0;
         virtual std::vector<unsigned int> sizes() const = 0;
 
-        virtual weak_vector<T>& as_vector() = 0;
-        virtual weak_vector<T> const& as_vector() const = 0;
+        virtual vector_like<T>& as_vector() = 0;
+        virtual vector_like<T> const& as_vector() const = 0;
 
-        virtual weak_matrix<T>& as_matrix() = 0;
-        virtual weak_matrix<T> const& as_matrix() const = 0;
+        virtual matrix_like<T>& as_matrix() = 0;
+        virtual matrix_like<T> const& as_matrix() const = 0;
 
     };
 
@@ -213,19 +213,17 @@ namespace la {
         virtual unsigned int vec_size() const;
         virtual std::vector<unsigned int> sizes() const;
 
-        virtual weak_vector<T>& as_vector();
-        virtual weak_vector<T> const& as_vector() const;
+        virtual vector_like<T>& as_vector();
+        virtual vector_like<T> const& as_vector() const;
 
-        virtual weak_matrix<T>& as_matrix();
-        virtual weak_matrix<T> const& as_matrix() const;
+        virtual matrix_like<T>& as_matrix();
+        virtual matrix_like<T> const& as_matrix() const;
 
     private:
         vector<T> data_;
         std::vector<unsigned int> sizes_;
         unsigned int dim_;
-        unsigned int vec_size_;
 
-        weak_vector<double> vec_;
         weak_matrix<double> mat_;
     };
 
@@ -253,19 +251,17 @@ namespace la {
         virtual unsigned int vec_size() const;
         virtual std::vector<unsigned int> sizes() const;
 
-        virtual weak_vector<T>& as_vector();
-        virtual weak_vector<T> const& as_vector() const;
+        virtual vector_like<T>& as_vector();
+        virtual vector_like<T> const& as_vector() const;
 
-        virtual weak_matrix<T>& as_matrix();
-        virtual weak_matrix<T> const& as_matrix() const;
+        virtual matrix_like<T>& as_matrix();
+        virtual matrix_like<T> const& as_matrix() const;
 
     private:
-        T *data_;
-        unsigned int vec_size_;
+        weak_vector<double> data_;
         std::vector<unsigned int> sizes_;
         unsigned int dim_;
 
-        weak_vector<double> vec_;
         weak_matrix<double> mat_;
     };
 

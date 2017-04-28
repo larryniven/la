@@ -1,4 +1,5 @@
 CXXFLAGS += -std=c++11 -I ../../ -L ../../ebt
+NVCCFLAGS += -std=c++11 -I ../../ -L ../../ebt
 
 .PHONY: all clean
 
@@ -14,7 +15,7 @@ test-la: test-la.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ ../la.o -lebt -lblas
 
 test-la-gpu.o: test-la-gpu.cu
-	nvcc $(CXXFLAGS) -c $^
+	nvcc $(NVCCFLAGS) -c $^
 
 test-la-gpu: test-la-gpu.o
-	nvcc $(CXXFLAGS) -L /opt/cuda/lib64 -o $@ ../la.o ../la-gpu.o $^ -lblas -lcublas -lcudart -lebt
+	$(CXX) $(CXXFLAGS) -L /opt/cuda/lib64 -o $@ ../la.o ../la-gpu.o $^ -lblas -lcublas -lcudart -lebt
