@@ -419,7 +419,7 @@ namespace la {
     tensor<double> mul(tensor_like<double> const& m,
         double a)
     {
-        tensor<double> result { m.as_vector() };
+        tensor<double> result { m };
 
         imul(result, a);
 

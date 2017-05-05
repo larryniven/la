@@ -378,10 +378,8 @@ namespace la {
         {}
 
         template <class T>
-        tensor<T>::tensor(tensor<T> const& that)
-            : data_(that.data_), sizes_(that.sizes_), dim_(that.dim_), vec_size_(that.vec_size_)
-            , vec_(data_.data(), vec_size_)
-            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+        tensor<T>::tensor(tensor_like<T> const& that)
+            : tensor(that.as_vector(), that.sizes())
         {}
 
         template <class T>

@@ -188,6 +188,7 @@ namespace la {
         tensor();
         tensor(tensor<T>&& that);
         tensor(tensor<T> const& that);
+        tensor(tensor_like<T> const& that);
         tensor(vector<T>&& data, std::vector<unsigned int> sizes);
         tensor(vector_like<T> const& data, std::vector<unsigned int> sizes);
         explicit tensor(vector_like<T> const& v);
