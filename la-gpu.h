@@ -200,6 +200,7 @@ namespace la {
 
             tensor();
             tensor(tensor<T>&& that);
+            tensor(tensor<T> const& that);
             tensor(tensor_like<T> const& that);
             tensor(la::tensor_like<T> const& ht);
             tensor(vector<T>&& data, std::vector<unsigned int> sizes);
