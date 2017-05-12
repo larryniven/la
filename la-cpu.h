@@ -1,97 +1,69 @@
-#ifndef LA_GPU_H
-#define LA_GPU_H
+#ifndef LA_CPU_H
+#define LA_CPU_H
 
 #include "la/la.h"
-#include "la/la-cpu.h"
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
 #include <vector>
-#include <cassert>
 #include "ebt/ebt.h"
+#include <cassert>
 
 namespace la {
 
-    namespace gpu {
-
-        __global__ void print_vec(double const *p, int size);
-        __global__ void print_mat(double const *p, int rows, int cols);
-
-        struct device {
-            static device d;
-
-            device();
-            ~device();
-
-            cublasHandle_t handle;
-
-            static device& get_instance();
-            static cublasHandle_t& get_handle();
-        };
+    namespace cpu {
 
         template <class T>
         struct vector_like
             : public la::vector_like<T> {
 
-            virtual T* begin() = 0;
-            virtual T const* begin() const = 0;
+            virtual T& operator()(int i) = 0;
+            virtual T const& operator()(int i) const = 0;
 
-            virtual T* end() = 0;
-            virtual T const* end() const = 0;
+            virtual T& at(int i) = 0;
+            virtual T const& at(int i) const = 0;
         };
 
         template <class T>
         struct vector : public vector_like<T> {
+
             vector();
-            ~vector();
-
-            vector(vector const& v);
-            vector(vector&& v);
+            explicit vector(std::vector<T> const& data);
+            explicit vector(std::vector<T>&& data);
             explicit vector(vector_like<T> const& v);
-            explicit vector(la::cpu::vector_like<T> const& v);
-
-            vector<T>& operator=(vector_like<T> const& v);
-            vector<T>& operator=(vector<T>&& v);
+            vector(std::initializer_list<T> list);
 
             virtual T* data();
             virtual T const* data() const;
 
             virtual unsigned int size() const;
 
-            virtual T* begin();
-            virtual T const* begin() const;
+            virtual T& operator()(int i);
+            virtual T const& operator()(int i) const;
 
-            virtual T* end();
-            virtual T const* end() const;
+            virtual T& at(int i);
+            virtual T const& at(int i) const;
 
             void resize(unsigned int size, T value = 0);
 
         private:
-            T *data_;
-            unsigned int size_;
+            std::vector<T> data_;
+
         };
-
-        template <class T>
-        la::cpu::vector<T> to_host(vector_like<T> const& v);
-
-        template <class T>
-        void to_device(vector_like<T>& dv, la::cpu::vector_like<T> const& hv);
 
         template <class T>
         struct weak_vector : public vector_like<T> {
 
-            weak_vector(T *data, unsigned int size);
             weak_vector(vector_like<T>& data);
+            weak_vector(T *data, unsigned int size);
 
             virtual T* data();
             virtual T const* data() const;
 
             virtual unsigned int size() const;
 
-            virtual T* begin();
-            virtual T const* begin() const;
+            virtual T& operator()(int i);
+            virtual T const& operator()(int i) const;
 
-            virtual T* end();
-            virtual T const* end() const;
+            virtual T& at(int i);
+            virtual T const& at(int i) const;
 
         private:
             T *data_;
@@ -102,6 +74,12 @@ namespace la {
         struct matrix_like
             : public la::matrix_like<T> {
 
+            virtual T& operator()(unsigned int r, unsigned int c) = 0;
+            virtual T const& operator()(unsigned int r, unsigned int c) const = 0;
+
+            virtual T& at(unsigned int r, unsigned int c) = 0;
+            virtual T const& at(unsigned int r, unsigned int c) const = 0;
+
             virtual vector_like<T>& as_vector() = 0;
             virtual vector_like<T> const& as_vector() const = 0;
         };
@@ -110,16 +88,21 @@ namespace la {
         struct matrix : public matrix_like<T> {
 
             matrix();
-            matrix(matrix<T> const& that);
-            matrix(matrix<T>&& that);
+            explicit matrix(std::vector<std::vector<T>> data);
             explicit matrix(matrix_like<T> const& m);
-            explicit matrix(la::cpu::matrix_like<T> const& m);
+            matrix(std::initializer_list<std::initializer_list<T>> list);
 
             virtual T* data();
             virtual T const* data() const;
 
             virtual unsigned int rows() const;
             virtual unsigned int cols() const;
+
+            virtual T& operator()(unsigned int r, unsigned int c);
+            virtual T const& operator()(unsigned int r, unsigned int c) const;
+
+            virtual T& at(unsigned int r, unsigned int c);
+            virtual T const& at(unsigned int r, unsigned int c) const;
 
             void resize(unsigned int rows, unsigned int cols, T value = 0);
 
@@ -133,12 +116,6 @@ namespace la {
         };
 
         template <class T>
-        la::cpu::matrix<T> to_host(matrix_like<T> const& m);
-
-        template <class T>
-        void to_device(matrix_like<T>& dm, la::cpu::matrix_like<T> const& hm);
-
-        template <class T>
         struct weak_matrix : public matrix_like<T> {
 
             weak_matrix(matrix_like<T>& m);
@@ -150,6 +127,12 @@ namespace la {
             virtual unsigned int rows() const;
             virtual unsigned int cols() const;
 
+            virtual T& operator()(unsigned int r, unsigned int c);
+            virtual T const& operator()(unsigned int r, unsigned int c) const;
+
+            virtual T& at(unsigned int r, unsigned int c);
+            virtual T const& at(unsigned int r, unsigned int c) const;
+
             virtual vector_like<T>& as_vector();
             virtual vector_like<T> const& as_vector() const;
 
@@ -159,11 +142,15 @@ namespace la {
             unsigned int cols_;
         };
 
-        // tensor
-
         template <class T>
         struct tensor_like
             : public la::tensor_like<T> {
+
+            virtual T& operator()(std::vector<int> indices) = 0;
+            virtual T const& operator()(std::vector<int> indices) const = 0;
+
+            virtual T& at(std::vector<int> indices) = 0;
+            virtual T const& at(std::vector<int> indices) const = 0;
 
             virtual vector_like<T>& as_vector() = 0;
             virtual vector_like<T> const& as_vector() const = 0;
@@ -181,7 +168,6 @@ namespace la {
             tensor(tensor<T>&& that);
             tensor(tensor<T> const& that);
             tensor(tensor_like<T> const& that);
-            tensor(la::cpu::tensor_like<T> const& ht);
             tensor(vector<T>&& data, std::vector<unsigned int> sizes);
             tensor(vector_like<T> const& data, std::vector<unsigned int> sizes);
             explicit tensor(vector_like<T> const& v);
@@ -192,6 +178,12 @@ namespace la {
 
             virtual unsigned int dim() const;
             virtual unsigned int size(unsigned int d) const;
+
+            virtual T& operator()(std::vector<int> indices);
+            virtual T const& operator()(std::vector<int> indices) const;
+
+            virtual T& at(std::vector<int> indices);
+            virtual T const& at(std::vector<int> indices) const;
 
             void resize(std::vector<unsigned int> sizes, T value = 0);
 
@@ -211,17 +203,9 @@ namespace la {
             vector<T> data_;
             std::vector<unsigned int> sizes_;
             unsigned int dim_;
-            unsigned int vec_size_;
 
-            weak_vector<double> vec_;
             weak_matrix<double> mat_;
         };
-
-        template <class T>
-        la::cpu::tensor<T> to_host(tensor_like<T> const& t);
-
-        template <class T>
-        void to_device(tensor_like<T>& dt, la::cpu::tensor_like<T> const& ht);
 
         template <class T>
         struct weak_tensor
@@ -237,6 +221,12 @@ namespace la {
 
             virtual unsigned int dim() const;
             virtual unsigned int size(unsigned int d) const;
+
+            virtual T& operator()(std::vector<int> indices);
+            virtual T const& operator()(std::vector<int> indices) const;
+
+            virtual T& at(std::vector<int> indices);
+            virtual T const& at(std::vector<int> indices) const;
 
             virtual unsigned int vec_size() const;
             virtual std::vector<unsigned int> sizes() const;
@@ -325,7 +315,10 @@ namespace la {
         void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b);
 
-        double norm(matrix_like<double> const& v);
+        double norm(matrix_like<double> const& m);
+
+        template <class T>
+        matrix<T> trans(matrix_like<T> const& m);
 
         vector<double> tensor_prod(vector_like<double> const& a,
             vector_like<double> const& b);
@@ -378,9 +371,52 @@ namespace la {
 
         void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
 
+        void corr_linearize(tensor_like<double>& result,
+            tensor_like<double> const& u, int f1, int f2);
+
+        void corr_linearize_valid(tensor_like<double>& result,
+            tensor_like<double> const& u, int f1, int f2);
+
+    }
+
+}
+
+namespace ebt {
+    namespace json {
+    
+        template <class T>
+        struct json_parser<la::cpu::vector<T>> {
+            la::cpu::vector<T> parse(std::istream& is);
+        };
+    
+        template <class T>
+        struct json_parser<la::cpu::matrix<T>> {
+            la::cpu::matrix<T> parse(std::istream& is);
+        };
+    
+        template <class T>
+        struct json_parser<la::cpu::tensor<T>> {
+            la::cpu::tensor<T> parse(std::istream& is);
+        };
+    
+        template <class T>
+        struct json_writer<la::cpu::vector<T>> {
+            void write(la::cpu::vector<T> const& v, std::ostream& os);
+        };
+        
+        template <class T>
+        struct json_writer<la::cpu::matrix<T>> {
+            void write(la::cpu::matrix<T> const& m, std::ostream& os);
+        };
+
+        template <class T>
+        struct json_writer<la::cpu::tensor<T>> {
+            void write(la::cpu::tensor<T> const& m, std::ostream& os);
+        };
+    
     }
 }
 
-#include "la-gpu-impl.h"
+#include "la-cpu-impl.h"
 
 #endif

@@ -3,12 +3,6 @@ namespace la {
 
     namespace gpu {
 
-        // vector_like
-
-        template <class T>
-        vector_like<T>::~vector_like()
-        {}
-
         // vector
 
         template <class T>
@@ -25,7 +19,7 @@ namespace la {
         }
 
         template <class T>
-        vector<T>::vector(la::vector_like<T> const& v)
+        vector<T>::vector(la::cpu::vector_like<T> const& v)
         {
             cudaMalloc(&data_, v.size() * sizeof(T));
             cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
@@ -139,16 +133,16 @@ namespace la {
         }
 
         template <class T>
-        la::vector<T> to_host(vector_like<T> const& v)
+        la::cpu::vector<T> to_host(vector_like<T> const& v)
         {
-            la::vector<T> result;
+            la::cpu::vector<T> result;
             result.resize(v.size());
             cublasGetVector(v.size(), sizeof(T), v.data(), 1, result.data(), 1);
             return result;
         }
 
         template <class T>
-        void to_device(vector_like<T>& dv, la::vector_like<T> const& hv)
+        void to_device(vector_like<T>& dv, la::cpu::vector_like<T> const& hv)
         {
             assert(dv.size() == hv.size());
 
@@ -209,12 +203,6 @@ namespace la {
             return data_ + size_;
         }
 
-        // matrix_like
-
-        template <class T>
-        matrix_like<T>::~matrix_like()
-        {}
-
         // matrix
 
         template <class T>
@@ -239,7 +227,7 @@ namespace la {
         }
 
         template <class T>
-        matrix<T>::matrix(la::matrix_like<T> const& m)
+        matrix<T>::matrix(la::cpu::matrix_like<T> const& m)
         {
             data_.resize(m.rows() * m.cols());
             cublasSetVector(m.rows() * m.cols(), sizeof(T), m.data(), 1, data_.data(), 1);
@@ -292,16 +280,16 @@ namespace la {
         }
 
         template <class T>
-        la::matrix<T> to_host(matrix_like<T> const& m)
+        la::cpu::matrix<T> to_host(matrix_like<T> const& m)
         {
-            la::matrix<T> result;
+            la::cpu::matrix<T> result;
             result.resize(m.rows(), m.cols());
             cublasGetVector(m.rows() * m.cols(), sizeof(T), m.data(), 1, result.data(), 1); 
             return result;
         }
 
         template <class T>
-        void to_device(matrix_like<T>& dm, la::matrix_like<T> const& hm)
+        void to_device(matrix_like<T>& dm, la::cpu::matrix_like<T> const& hm)
         {
             assert(dm.rows() == hm.rows() && dm.cols() == hm.cols());
 
@@ -356,12 +344,6 @@ namespace la {
             return data_;
         }
 
-        // tensor_like
-
-        template <class T>
-        tensor_like<T>::~tensor_like()
-        {}
-
         // tensor
 
         template <class T>
@@ -390,7 +372,7 @@ namespace la {
         {}
 
         template <class T>
-        tensor<T>::tensor(la::tensor_like<T> const& ht)
+        tensor<T>::tensor(la::cpu::tensor_like<T> const& ht)
             : data_(ht.as_vector()), sizes_(ht.sizes()), dim_(ht.dim()), vec_size_(ht.vec_size())
             , vec_(data_.data(), vec_size_)
             , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
@@ -552,14 +534,14 @@ namespace la {
         }
 
         template <class T>
-        la::tensor<T> to_host(tensor_like<T> const& t)
+        la::cpu::tensor<T> to_host(tensor_like<T> const& t)
         {
-            la::vector<T> hv = to_host(t.as_vector());
-            return la::tensor<T>(hv, t.sizes());
+            la::cpu::vector<T> hv = to_host(t.as_vector());
+            return la::cpu::tensor<T>(hv, t.sizes());
         }
 
         template <class T>
-        void to_device(tensor_like<T>& dt, la::tensor_like<T> const& ht)
+        void to_device(tensor_like<T>& dt, la::cpu::tensor_like<T> const& ht)
         {
             assert(dt.vec_size() == ht.vec_size());
 

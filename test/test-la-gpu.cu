@@ -5,11 +5,11 @@
 
 std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     {"test-vec-copy", []() {
-        la::vector<double> hb {1, 2, 3};
+        la::cpu::vector<double> hb {1, 2, 3};
         la::gpu::vector<double> db {hb};
         ebt::assert_equals(3, db.size());
 
-        la::vector<double> hb2 = to_host(db);
+        la::cpu::vector<double> hb2 = to_host(db);
         ebt::assert_equals(1, hb2(0));
         ebt::assert_equals(2, hb2(1));
         ebt::assert_equals(3, hb2(2));
@@ -18,14 +18,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     {"test-vec-resize", []() {
         la::gpu::vector<double> db;
         db.resize(3, 1);
-        la::vector<double> hb = to_host(db);
+        la::cpu::vector<double> hb = to_host(db);
         ebt::assert_equals(1, hb(0));
         ebt::assert_equals(1, hb(1));
         ebt::assert_equals(1, hb(2));
     }},
 
     {"test-vec-has-nan", []() {
-        la::vector<double> hv;
+        la::cpu::vector<double> hv;
         hv.resize(3);
         hv(0) = 1;
         hv(1) = 2;
@@ -34,7 +34,7 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
 
         ebt::assert_equals(true, la::gpu::has_nan(dv));
 
-        la::vector<double> hv2;
+        la::cpu::vector<double> hv2;
         hv2.resize(3);
         hv2(0) = 4;
         hv2(1) = 5;
@@ -45,37 +45,37 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-weak-vec", []() {
-        la::vector<double> hb {1, 2, 3, 4, 5, 6};
+        la::cpu::vector<double> hb {1, 2, 3, 4, 5, 6};
         la::gpu::vector<double> db {hb};
 
         la::gpu::weak_vector<double> db2 { db.data() + 3, 3 };
-        la::vector<double> hb2 = to_host(db2);
+        la::cpu::vector<double> hb2 = to_host(db2);
         ebt::assert_equals(4, hb2(0));
         ebt::assert_equals(5, hb2(1));
         ebt::assert_equals(6, hb2(2));
     }},
 
     {"test-vec-emul", []() {
-        la::vector<double> ha {1, 2, 3};
+        la::cpu::vector<double> ha {1, 2, 3};
         la::gpu::vector<double> da {ha};
-        la::vector<double> hb {4, 5, 6};
+        la::cpu::vector<double> hb {4, 5, 6};
         la::gpu::vector<double> db {hb};
 
         la::gpu::vector<double> dc = emul(da, db);
-        la::vector<double> hc = to_host(dc);
+        la::cpu::vector<double> hc = to_host(dc);
         ebt::assert_equals(4, hc(0));
         ebt::assert_equals(10, hc(1));
         ebt::assert_equals(18, hc(2));
     }},
 
     {"test-mat-copy", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
 
         ebt::assert_equals(2, da.rows());
         ebt::assert_equals(3, da.cols());
 
-        la::matrix<double> ha2 = to_host(da);
+        la::cpu::matrix<double> ha2 = to_host(da);
 
         ebt::assert_equals(1, ha2(0, 0));
         ebt::assert_equals(2, ha2(0, 1));
@@ -87,11 +87,11 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-weak-mat", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
         la::gpu::weak_matrix<double> da2 {da.data(), 2, 2};
 
-        la::matrix<double> ha2 = to_host(da2);
+        la::cpu::matrix<double> ha2 = to_host(da2);
 
         ebt::assert_equals(1, ha2(0, 0));
         ebt::assert_equals(2, ha2(0, 1));
@@ -100,15 +100,15 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-mat-iadd", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
 
-        la::matrix<double> hb {{7, 8, 9}, {10, 11, 12}};
+        la::cpu::matrix<double> hb {{7, 8, 9}, {10, 11, 12}};
         la::gpu::matrix<double> db {hb};
 
         iadd(da, db);
 
-        la::matrix<double> ha2 = to_host(da);
+        la::cpu::matrix<double> ha2 = to_host(da);
 
         ebt::assert_equals(8, ha2(0, 0));
         ebt::assert_equals(10, ha2(0, 1));
@@ -120,24 +120,24 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-mul", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
-        la::vector<double> hb {1, 2, 3};
+        la::cpu::vector<double> hb {1, 2, 3};
         la::gpu::vector<double> db {hb};
         la::gpu::vector<double> dr = mul(da, db);
-        la::vector<double> hr = to_host(dr);
+        la::cpu::vector<double> hr = to_host(dr);
         ebt::assert_equals(2, hr.size());
         ebt::assert_equals(14, hr(0));
         ebt::assert_equals(32, hr(1));
     }},
 
     {"test-lmul", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
-        la::vector<double> hb {1, 2};
+        la::cpu::vector<double> hb {1, 2};
         la::gpu::vector<double> db {hb};
         la::gpu::vector<double> dr = lmul(db, da);
-        la::vector<double> hr = to_host(dr);
+        la::cpu::vector<double> hr = to_host(dr);
         ebt::assert_equals(3, hr.size());
         ebt::assert_equals(9, hr(0));
         ebt::assert_equals(12, hr(1));
@@ -145,12 +145,12 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-matrix-mul", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
-        la::matrix<double> hb {{7, 8, 9, 10}, {11, 12, 13, 14}, {15, 16, 17, 18}};
+        la::cpu::matrix<double> hb {{7, 8, 9, 10}, {11, 12, 13, 14}, {15, 16, 17, 18}};
         la::gpu::matrix<double> db {hb};
         la::gpu::matrix<double> dr = mul(da, db);
-        la::matrix<double> hr = to_host(dr);
+        la::cpu::matrix<double> hr = to_host(dr);
 
         ebt::assert_equals(2, hr.rows());
         ebt::assert_equals(4, hr.cols());
@@ -166,14 +166,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-ltmul", []() {
-        la::matrix<double> ha {{1, 4}, {2, 5}, {3, 6}};
+        la::cpu::matrix<double> ha {{1, 4}, {2, 5}, {3, 6}};
         la::gpu::matrix<double> da {ha};
-        la::matrix<double> hb {{7, 8, 9, 10}, {11, 12, 13, 14}, {15, 16, 17, 18}};
+        la::cpu::matrix<double> hb {{7, 8, 9, 10}, {11, 12, 13, 14}, {15, 16, 17, 18}};
         la::gpu::matrix<double> db {hb};
         la::gpu::matrix<double> dr;
         dr.resize(2, 4);
         ltmul(dr, da, db);
-        la::matrix<double> hr = to_host(dr);
+        la::cpu::matrix<double> hr = to_host(dr);
 
         ebt::assert_equals(2, hr.rows());
         ebt::assert_equals(4, hr.cols());
@@ -189,14 +189,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-rtmul", []() {
-        la::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
+        la::cpu::matrix<double> ha {{1, 2, 3}, {4, 5, 6}};
         la::gpu::matrix<double> da {ha};
-        la::matrix<double> hb {{7, 11, 15}, {8, 12, 16}, {9, 13, 17}, {10, 14, 18}};
+        la::cpu::matrix<double> hb {{7, 11, 15}, {8, 12, 16}, {9, 13, 17}, {10, 14, 18}};
         la::gpu::matrix<double> db {hb};
         la::gpu::matrix<double> dr;
         dr.resize(2, 4);
         rtmul(dr, da, db);
-        la::matrix<double> hr = to_host(dr);
+        la::cpu::matrix<double> hr = to_host(dr);
 
         ebt::assert_equals(2, hr.rows());
         ebt::assert_equals(4, hr.cols());
@@ -212,14 +212,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-vec-tensor-prod", []() {
-        la::vector<double> ha {1, 2};
+        la::cpu::vector<double> ha {1, 2};
         la::gpu::vector<double> da {ha};
 
-        la::vector<double> hb {3, 4, 5};
+        la::cpu::vector<double> hb {3, 4, 5};
         la::gpu::vector<double> db {hb};
 
         la::gpu::vector<double> dc = tensor_prod(da, db);
-        la::vector<double> hc = to_host(dc);
+        la::cpu::vector<double> hc = to_host(dc);
 
         ebt::assert_equals(6, hc.size());
 
@@ -233,14 +233,14 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-outer-prod", []() {
-        la::vector<double> ha {1, 2};
+        la::cpu::vector<double> ha {1, 2};
         la::gpu::vector<double> da {ha};
 
-        la::vector<double> hb {3, 4, 5};
+        la::cpu::vector<double> hb {3, 4, 5};
         la::gpu::vector<double> db {hb};
 
         la::gpu::matrix<double> dc = outer_prod(da, db);
-        la::matrix<double> hc = to_host(dc);
+        la::cpu::matrix<double> hc = to_host(dc);
 
         ebt::assert_equals(2, hc.rows());
         ebt::assert_equals(3, hc.cols());
@@ -255,7 +255,7 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-tensor", []() {
-        la::vector<double> v {
+        la::cpu::vector<double> v {
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -264,10 +264,10 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
             17, 18, 19, 20,
             21, 22, 23, 24};
 
-        la::tensor<double> ht {v, std::vector<unsigned int>{2, 3, 4}};
+        la::cpu::tensor<double> ht {v, std::vector<unsigned int>{2, 3, 4}};
 
         la::gpu::tensor<double> dt { ht };
-        la::tensor<double> ht2 = to_host(dt);
+        la::cpu::tensor<double> ht2 = to_host(dt);
 
         ebt::assert_equals(v(0), ht2({0, 0, 0}));
         ebt::assert_equals(v(1), ht2({0, 0, 1}));

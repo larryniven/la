@@ -12,14 +12,14 @@ clean:
 	-rm libla.a liblagpu.a
 	-rm *.o
 
-libla.a: la.o
+libla.a: la-cpu.o
 	$(AR) rcs $@ $^
 
-liblagpu.a: la.o la-gpu.o
+liblagpu.a: la-cpu.o la-gpu.o
 	$(AR) rcs $@ $^
 
 la-gpu.o: la-gpu.cu
 	nvcc $(NVCCFLAGS) -c la-gpu.cu
 
-la.o: la.h la-impl.h
+la-cpu.o: la-cpu.h la-cpu-impl.h
 la-gpu.o: la-gpu.h la-gpu-impl.h

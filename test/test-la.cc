@@ -1,21 +1,21 @@
 #include <vector>
 #include <functional>
-#include "la/la.h"
+#include "la/la-cpu.h"
 #include "ebt/ebt.h"
 
 std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     {"test-size", []() {
-        la::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+        la::cpu::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
         ebt::assert_equals(3, a.rows());
         ebt::assert_equals(3, a.cols());
-        la::vector<double> b {1, 2, 3};
+        la::cpu::vector<double> b {1, 2, 3};
         ebt::assert_equals(3, b.size());
     }},
 
     {"test-mul", []() {
-        la::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-        la::vector<double> b {1, 2, 3};
-        la::vector<double> r = mul(a, b);
+        la::cpu::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+        la::cpu::vector<double> b {1, 2, 3};
+        la::cpu::vector<double> r = mul(a, b);
         ebt::assert_equals(3, r.size());
         ebt::assert_equals(14, r(0));
         ebt::assert_equals(32, r(1));
@@ -23,9 +23,9 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-tensor-product", []() {
-        la::vector<double> a {1, 2};
-        la::vector<double> b {3, 4, 5};
-        la::vector<double> c = tensor_prod(a, b);
+        la::cpu::vector<double> a {1, 2};
+        la::cpu::vector<double> b {3, 4, 5};
+        la::cpu::vector<double> c = tensor_prod(a, b);
 
         ebt::assert_equals(6, c.size());
 
@@ -39,9 +39,9 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-outer-product", []() {
-        la::vector<double> a {1, 2};
-        la::vector<double> b {3, 4, 5};
-        la::matrix<double> c = outer_prod(a, b);
+        la::cpu::vector<double> a {1, 2};
+        la::cpu::vector<double> b {3, 4, 5};
+        la::cpu::matrix<double> c = outer_prod(a, b);
 
         ebt::assert_equals(2, c.rows());
         ebt::assert_equals(3, c.cols());
@@ -56,7 +56,7 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-tensor", []() {
-        la::vector<double> v {
+        la::cpu::vector<double> v {
             1, 2, 3, 4,
             5, 6, 7, 8,
             9, 10, 11, 12,
@@ -65,7 +65,7 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
             17, 18, 19, 20,
             21, 22, 23, 24};
 
-        la::weak_tensor<double> t {v.data(), std::vector<unsigned int>{2, 3, 4}};
+        la::cpu::weak_tensor<double> t {v.data(), std::vector<unsigned int>{2, 3, 4}};
 
         ebt::assert_equals(v(0), t({0, 0, 0}));
         ebt::assert_equals(v(1), t({0, 0, 1}));
@@ -78,16 +78,16 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     }},
 
     {"test-large-emul", []() {
-        la::tensor<double> v;
+        la::cpu::tensor<double> v;
         v.resize({474 * 41 * 61 * 61}, 1);
 
-        la::tensor<double> u;
+        la::cpu::tensor<double> u;
         u.resize({474 * 41 * 61 * 61}, 2);
 
-        la::tensor<double> z;
+        la::cpu::tensor<double> z;
         z.resize({474 * 41 * 61 * 61});
 
-        la::emul(z, u, v);
+        la::cpu::emul(z, u, v);
 
         ebt::assert_equals(2, z({0}));
     }},
