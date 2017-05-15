@@ -157,7 +157,7 @@ namespace la {
         {
             assert(u.size() == v.size());
 
-            thrust::for_each(
+            thrust::for_each(thrust::device,
                 thrust::make_zip_iterator(thrust::make_tuple(
                     thrust::device_ptr<double>(u.begin()), thrust::device_ptr<double const>(v.begin()))),
                 thrust::make_zip_iterator(thrust::make_tuple(
@@ -165,15 +165,39 @@ namespace la {
                 idiv_op());
         }
 
+        struct emul_op {
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const
+            {
+                thrust::get<0>(t) += thrust::get<1>(t) * thrust::get<2>(t);
+            }
+        };
+
         void emul(vector_like<double>& z, vector_like<double> const& u,
             vector_like<double> const& v)
         {
             assert(u.size() == v.size() && z.size() == v.size());
 
+            thrust::for_each(thrust::device,
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.begin()),
+                    thrust::device_ptr<double const>(u.begin()),
+                    thrust::device_ptr<double const>(v.begin())
+                )),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.end()),
+                    thrust::device_ptr<double const>(u.end()),
+                    thrust::device_ptr<double const>(v.end())
+                )),
+                emul_op());
+
+#if 0
             double alpha = 1;
             double beta = 1;
             cublasDgbmv(device::get_handle(), CUBLAS_OP_N, u.size(), u.size(), 0, 0,
                 &alpha, u.data(), 1, v.data(), 1, &beta, z.data(), 1);
+#endif
         }
 
         void iemul(vector_like<double>& u, vector_like<double> const& v)
