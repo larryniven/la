@@ -487,7 +487,7 @@ namespace la {
 
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u,
-            int f1, int f2)
+            int f1, int f2, int d1, int d2)
         {
             assert(u.dim() >= 2);
 
@@ -504,8 +504,8 @@ namespace la {
             unsigned int s1 = u3.size(1);
             unsigned int s2 = u3.size(2);
 
-            for (int i = 0; i < s0; ++i) {
-                for (int j = 0; j < s1; ++j) {
+            for (int i = 0; i < s0; i += d1) {
+                for (int j = 0; j < s1; j += d2) {
 
                     for (int a = 0; a < f1; ++a) {
                         for (int b = 0; b < f2; ++b) {
@@ -528,9 +528,16 @@ namespace la {
             }
         }
 
-        void corr_linearize_valid(tensor_like<double>& result,
+        void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u,
             int f1, int f2)
+        {
+            corr_linearize(result, u, f1, f2, 1, 1);
+        }
+
+        void corr_linearize_valid(tensor_like<double>& result,
+            tensor_like<double> const& u,
+            int f1, int f2, int d1, int d2)
         {
             assert(u.dim() >= 2);
 
@@ -547,8 +554,8 @@ namespace la {
             unsigned int s1 = u3.size(1);
             unsigned int s2 = u3.size(2);
 
-            for (int i = 0; i < s0 - f1 + 1; ++i) {
-                for (int j = 0; j < s1 - f2 + 1; ++j) {
+            for (int i = 0; i < s0 - f1 + 1; i += d1) {
+                for (int j = 0; j < s1 - f2 + 1; j += d2) {
 
                     for (int a = 0; a < f1; ++a) {
                         for (int b = 0; b < f2; ++b) {
@@ -565,5 +572,11 @@ namespace la {
             }
         }
 
+        void corr_linearize_valid(tensor_like<double>& result,
+            tensor_like<double> const& u,
+            int f1, int f2)
+        {
+            corr_linearize_valid(result, u, f1, f2, 1, 1);
+        }
     }
 }
