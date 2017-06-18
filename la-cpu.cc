@@ -495,7 +495,7 @@ namespace la {
 
             weak_tensor<double> u3 { const_cast<double*>(u.data()), { u.size(0), u.size(1), d3 } };
 
-            int z = 0;
+            // int z = 0;
 
             double *result_data = result.data();
             double const *u3_data = u3.data();
@@ -504,21 +504,26 @@ namespace la {
             unsigned int s1 = u3.size(1);
             unsigned int s2 = u3.size(2);
 
-            for (int i = 0; i < s0; i += d1) {
-                for (int j = 0; j < s1; j += d2) {
+            #pragma omp parallel for
+            for (int i = 0; i < s0; ++i) {
+                for (int j = 0; j < s1; ++j) {
 
                     for (int a = 0; a < f1; ++a) {
                         for (int b = 0; b < f2; ++b) {
-                            int base = (i + a - (f1 / 2)) * s1 * s2 + (j + b - (f2 / 2)) * s2;
+                            int c1 = i + (a - (f1 / 2)) * d1;
+                            int c2 = j + (b - (f2 / 2)) * d2;
 
-                            if (i + a - (f1 / 2) < 0 || j + b - (f2 / 2) < 0
-                                    || i + a - (f1 / 2) >= s0 || j + b - (f2 / 2) >= s1) {
+                            int z = i * s1 * f1 * f2 * s2 + j * f1 * f2 * s2 + a * f2 * s2 + b * s2;
+
+                            int base = c1 * s1 * s2 + c2 * s2;
+
+                            if (c1 < 0 || c2 < 0 || c1 >= s0 || c2 >= s1) {
                                 // do nothing
-                                z += s2;
+                                // z += s2;
                             } else {
                                 for (int k = 0; k < s2; ++k) {
-                                    result_data[z] = u3_data[base + k];
-                                    ++z;
+                                    result_data[z + k] = u3_data[base + k];
+                                    // ++z;
                                 }
                             }
                         }
@@ -533,50 +538,6 @@ namespace la {
             int f1, int f2)
         {
             corr_linearize(result, u, f1, f2, 1, 1);
-        }
-
-        void corr_linearize_valid(tensor_like<double>& result,
-            tensor_like<double> const& u,
-            int f1, int f2, int d1, int d2)
-        {
-            assert(u.dim() >= 2);
-
-            unsigned int d3 = u.vec_size() / (u.size(0) * u.size(1));
-
-            weak_tensor<double> u3 { const_cast<double*>(u.data()), { u.size(0), u.size(1), d3 } };
-
-            int z = 0;
-
-            double *result_data = result.data();
-            double const *u3_data = u3.data();
-
-            unsigned int s0 = u3.size(0);
-            unsigned int s1 = u3.size(1);
-            unsigned int s2 = u3.size(2);
-
-            for (int i = 0; i < s0 - f1 + 1; i += d1) {
-                for (int j = 0; j < s1 - f2 + 1; j += d2) {
-
-                    for (int a = 0; a < f1; ++a) {
-                        for (int b = 0; b < f2; ++b) {
-                            int base = (i + a) * s1 * s2 + (j + b) * s2;
-
-                            for (int k = 0; k < s2; ++k) {
-                                result_data[z] = u3_data[base + k];
-                                ++z;
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
-        void corr_linearize_valid(tensor_like<double>& result,
-            tensor_like<double> const& u,
-            int f1, int f2)
-        {
-            corr_linearize_valid(result, u, f1, f2, 1, 1);
         }
     }
 }
