@@ -391,8 +391,16 @@ namespace la {
         void mul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& v)
         {
-            if (a.dim() == 1) {
+            matrix_like<double>& u_mat = u.as_matrix();
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& v_mat = v.as_matrix();
+
+            if (a_mat.cols() == 1 && v_mat.rows() == 1) {
+                outer_prod(u.as_matrix(), a.as_vector(), v.as_vector());
+            } else if (a_mat.rows() == 1 && v_mat.cols() != 1) {
                 lmul(u.as_vector(), a.as_vector(), v.as_matrix());
+            } else if (a_mat.rows() != 1 && v_mat.cols() == 1) {
+                mul(u.as_vector(), a.as_matrix(), v.as_vector());
             } else {
                 mul(u.as_matrix(), a.as_matrix(), v.as_matrix());
             }
@@ -401,8 +409,16 @@ namespace la {
         void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& b)
         {
-            if (a.dim() == 1 && b.dim() == 1) {
+            matrix_like<double>& u_mat = u.as_matrix();
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& b_mat = b.as_matrix();
+
+            if (a_mat.rows() == 1 && b_mat.rows() == 1) {
                 outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
+            } else if (a_mat.rows() != 1 && b_mat.cols() == 1) {
+                lmul(u.as_vector(), b.as_vector(), a.as_matrix());
+            } else if (a_mat.cols() == 1 && b_mat.cols() != 1) {
+                lmul(u.as_vector(), a.as_vector(), b.as_matrix());
             } else {
                 ltmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
             }
@@ -411,8 +427,16 @@ namespace la {
         void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& b)
         {
-            if (a.dim() == 1) {
+            matrix_like<double>& u_mat = u.as_matrix();
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& b_mat = b.as_matrix();
+
+            if (a_mat.cols() == 1 && b_mat.cols() == 1) {
+                outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
+            } else if (a_mat.rows() == 1 && b_mat.cols() != 1) {
                 mul(u.as_vector(), b.as_matrix(), a.as_vector());
+            } else if (a_mat.rows() != 1 && b_mat.rows() == 1) {
+                mul(u.as_vector(), a.as_matrix(), b.as_vector());
             } else {
                 rtmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
             }
