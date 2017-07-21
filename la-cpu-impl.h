@@ -327,7 +327,8 @@ namespace la {
         template <class T>
         tensor<T>::tensor(tensor<T>&& that)
             : data_(std::move(that.data_)), sizes_(std::move(that.sizes_)), dim_(that.dim_)
-            , mat_(data_.data(), data_.size() / sizes_.back(), sizes_.back())
+            , mat_(data_.data(), sizes_.size() == 0 ? 0 : data_.size() / sizes_.back()
+            , sizes_.size() == 0 ? 0 : sizes_.back())
         {}
 
         template <class T>
@@ -345,6 +346,10 @@ namespace la {
             : data_(std::move(data)), sizes_(sizes), dim_(sizes_.size())
             , mat_(data_.data(), 0, 0)
         {
+            for (int i = 0; i < sizes.size(); ++i) {
+                assert(sizes[i] > 0);
+            }
+
             if (dim_ != 0) {
                 unsigned int d = 1;
                 for (int i = 0; i < dim_; ++i) {
@@ -452,6 +457,10 @@ namespace la {
         template <class T>
         void tensor<T>::resize(std::vector<unsigned int> new_sizes, T value)
         {
+            for (int i = 0; i < new_sizes.size(); ++i) {
+                assert(new_sizes[i] > 0);
+            }
+
             if (new_sizes.size() == 0) {
                 sizes_ = std::vector<unsigned int>();
                 data_.resize(0);
@@ -547,6 +556,10 @@ namespace la {
             , dim_(sizes_.size())
             , mat_(data, 0, 0)
         {
+            for (int i = 0; i < sizes.size(); ++i) {
+                assert(sizes[i] > 0);
+            }
+
             if (dim_ != 0) {
                 unsigned int d = 1;
                 for (int i = 0; i < dim_; ++i) {

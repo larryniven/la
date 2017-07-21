@@ -511,44 +511,46 @@ namespace la {
 
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u,
-            int f1, int f2, int d1, int d2)
+            int f1, int f2, int p1, int p2, int d1, int d2)
         {
-            assert(u.dim() >= 2);
-
-            unsigned int d3 = u.vec_size() / (u.size(0) * u.size(1));
-
-            weak_tensor<double> u3 { const_cast<double*>(u.data()), { u.size(0), u.size(1), d3 } };
-
-            // int z = 0;
+            assert(u.dim() == 3);
 
             double *result_data = result.data();
-            double const *u3_data = u3.data();
+            double const *u_data = u.data();
 
-            unsigned int s0 = u3.size(0);
-            unsigned int s1 = u3.size(1);
-            unsigned int s2 = u3.size(2);
+            unsigned int s0 = u.size(0);
+            unsigned int s1 = u.size(1);
+            unsigned int s2 = u.size(2);
 
-            #pragma omp parallel for
-            for (int i = 0; i < s0; ++i) {
-                for (int j = 0; j < s1; ++j) {
+            int result_vec_size = result.vec_size();
+            int u_vec_size = u.vec_size();
 
+            unsigned int r0 = s0 - f1 + 1 + 2 * p1;
+            unsigned int r1 = s1 - f2 + 1 + 2 * p2;
+
+            for (int i = 0; i < r0; ++i) {
+                for (int j = 0; j < r1; ++j) {
                     for (int a = 0; a < f1; ++a) {
                         for (int b = 0; b < f2; ++b) {
-                            int c1 = i + (a - (f1 / 2)) * d1;
-                            int c2 = j + (b - (f2 / 2)) * d2;
 
-                            int z = i * s1 * f1 * f2 * s2 + j * f1 * f2 * s2 + a * f2 * s2 + b * s2;
+                            // int c1 = i + (a - (f1 / 2)) * d1;
+                            // int c2 = j + (b - (f2 / 2)) * d2;
 
-                            int base = c1 * s1 * s2 + c2 * s2;
+                            int c1 = i + (a - p1) * d1;
+                            int c2 = j + (b - p2) * d2;
 
                             if (c1 < 0 || c2 < 0 || c1 >= s0 || c2 >= s1) {
-                                // do nothing
-                                // z += s2;
-                            } else {
-                                for (int k = 0; k < s2; ++k) {
-                                    result_data[z + k] = u3_data[base + k];
-                                    // ++z;
-                                }
+                                continue;
+                            }
+
+                            int output_base = i * r1 * f1 * f2 * s2 + j * f1 * f2 * s2 + a * f2 * s2 + b * s2;
+                            int input_base = c1 * s1 * s2 + c2 * s2;
+
+                            for (int k = 0; k < s2; ++k) {
+                                assert(output_base + k < result_vec_size);
+                                assert(input_base + k < u_vec_size);
+
+                                result_data[output_base + k] = u_data[input_base + k];
                             }
                         }
                     }
@@ -561,7 +563,7 @@ namespace la {
             tensor_like<double> const& u,
             int f1, int f2)
         {
-            corr_linearize(result, u, f1, f2, 1, 1);
+            corr_linearize(result, u, f1, f2, 0, 0, 1, 1);
         }
     }
 }

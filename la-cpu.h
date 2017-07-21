@@ -372,7 +372,8 @@ namespace la {
         void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
 
         void corr_linearize(tensor_like<double>& result,
-            tensor_like<double> const& u, int f1, int f2, int d1, int d2);
+            tensor_like<double> const& u, int f1, int f2,
+            int p1, int p2, int d1, int d2);
 
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u, int f1, int f2);
