@@ -391,7 +391,6 @@ namespace la {
         void mul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& v)
         {
-            matrix_like<double>& u_mat = u.as_matrix();
             matrix_like<double> const& a_mat = a.as_matrix();
             matrix_like<double> const& v_mat = v.as_matrix();
 
@@ -409,7 +408,6 @@ namespace la {
         void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& b)
         {
-            matrix_like<double>& u_mat = u.as_matrix();
             matrix_like<double> const& a_mat = a.as_matrix();
             matrix_like<double> const& b_mat = b.as_matrix();
 
@@ -427,7 +425,6 @@ namespace la {
         void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& b)
         {
-            matrix_like<double>& u_mat = u.as_matrix();
             matrix_like<double> const& a_mat = a.as_matrix();
             matrix_like<double> const& b_mat = b.as_matrix();
 
