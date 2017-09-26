@@ -510,48 +510,51 @@ namespace la {
             tensor_like<double> const& u,
             int f1, int f2, int p1, int p2, int d1, int d2)
         {
-            assert(u.dim() == 3);
-
             double *result_data = result.data();
             double const *u_data = u.data();
 
-            unsigned int s0 = u.size(0);
-            unsigned int s1 = u.size(1);
-            unsigned int s2 = u.size(2);
+            assert(u.dim() == 4);
+
+            unsigned int s0, s1, s2, s3;
+            std::tie(s0, s1, s2, s3) = std::make_tuple(u.size(0), u.size(1),
+                u.size(2), u.size(3));
 
             int result_vec_size = result.vec_size();
             int u_vec_size = u.vec_size();
 
-            unsigned int r0 = s0 - f1 + 1 + 2 * p1;
-            unsigned int r1 = s1 - f2 + 1 + 2 * p2;
+            unsigned int r0 = s1 - f1 + 1 + 2 * p1;
+            unsigned int r1 = s2 - f2 + 1 + 2 * p2;
 
-            for (int i = 0; i < r0; ++i) {
-                for (int j = 0; j < r1; ++j) {
-                    for (int a = 0; a < f1; ++a) {
-                        for (int b = 0; b < f2; ++b) {
+            for (int n = 0; n < s0; ++n) {
+                for (int i = 0; i < r0; ++i) {
+                    for (int j = 0; j < r1; ++j) {
+                        for (int a = 0; a < f1; ++a) {
+                            for (int b = 0; b < f2; ++b) {
 
-                            // int c1 = i + (a - (f1 / 2)) * d1;
-                            // int c2 = j + (b - (f2 / 2)) * d2;
+                                // int c1 = i + (a - (f1 / 2)) * d1;
+                                // int c2 = j + (b - (f2 / 2)) * d2;
 
-                            int c1 = i + (a - p1) * d1;
-                            int c2 = j + (b - p2) * d2;
+                                int c1 = i + (a - p1) * d1;
+                                int c2 = j + (b - p2) * d2;
 
-                            if (c1 < 0 || c2 < 0 || c1 >= s0 || c2 >= s1) {
-                                continue;
-                            }
+                                if (c1 < 0 || c2 < 0 || c1 >= s1 || c2 >= s2) {
+                                    continue;
+                                }
 
-                            int output_base = i * r1 * f1 * f2 * s2 + j * f1 * f2 * s2 + a * f2 * s2 + b * s2;
-                            int input_base = c1 * s1 * s2 + c2 * s2;
+                                int output_base = n * r0 * r1 * f1 * f2 * s3 + i * r1 * f1 * f2 * s3
+                                    + j * f1 * f2 * s3 + a * f2 * s3 + b * s3;
+                                int input_base = n * s1 * s2 * s3 + c1 * s2 * s3 + c2 * s3;
 
-                            for (int k = 0; k < s2; ++k) {
-                                assert(output_base + k < result_vec_size);
-                                assert(input_base + k < u_vec_size);
+                                for (int k = 0; k < s3; ++k) {
+                                    assert(output_base + k < result_vec_size);
+                                    assert(input_base + k < u_vec_size);
 
-                                result_data[output_base + k] = u_data[input_base + k];
+                                    result_data[output_base + k] = u_data[input_base + k];
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
             }
         }
