@@ -378,6 +378,10 @@ namespace la {
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u, int f1, int f2);
 
+        void corr_delinearize(tensor_like<double>& result,
+            tensor_like<double> const& u,
+            int f1, int f2, int p1, int p2, int d1, int d2);
+
     }
 
 }

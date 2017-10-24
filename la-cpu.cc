@@ -506,6 +506,22 @@ namespace la {
             axpy(y.as_vector(), a, x.as_vector());
         }
 
+        /*
+         * 
+         * f1: first dimension of the filters
+         * f2: second dimension of the filters
+         * 
+         * p1: first dimension of padding
+         * p2: second dimension of padding
+         * 
+         * d1: first dimension of dilation
+         * d2: second dimension of dilation
+         *
+         * this function ignores the dimension of result.
+         * 
+         * u is assumed to have dimension batch size x time x freq x channel
+         * 
+         */
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u,
             int f1, int f2, int p1, int p2, int d1, int d2)
@@ -549,7 +565,7 @@ namespace la {
                                     assert(output_base + k < result_vec_size);
                                     assert(input_base + k < u_vec_size);
 
-                                    result_data[output_base + k] = u_data[input_base + k];
+                                    result_data[output_base + k] += u_data[input_base + k];
                                 }
                             }
                         }
@@ -565,5 +581,74 @@ namespace la {
         {
             corr_linearize(result, u, f1, f2, 0, 0, 1, 1);
         }
+
+        /*
+         * 
+         * f1: first dimension of the filters
+         * f2: second dimension of the filters
+         * 
+         * p1: first dimension of padding
+         * p2: second dimension of padding
+         * 
+         * d1: first dimension of dilation
+         * d2: second dimension of dilation
+         *
+         * this function ignores the dimension of u.
+         * 
+         * result is assumed to have dimension batch size x time x freq x channel
+         * 
+         */
+        void corr_delinearize(tensor_like<double>& result,
+            tensor_like<double> const& u,
+            int f1, int f2, int p1, int p2, int d1, int d2)
+        {
+            double *result_data = result.data();
+            double const *u_data = u.data();
+
+            assert(result.dim() == 4);
+
+            unsigned int s0, s1, s2, s3;
+            std::tie(s0, s1, s2, s3) = std::make_tuple(result.size(0), result.size(1),
+                result.size(2), result.size(3));
+
+            int u_vec_size = u.vec_size();
+            int result_vec_size = result.vec_size();
+
+            unsigned int r0 = s1 - f1 + 1 + 2 * p1;
+            unsigned int r1 = s2 - f2 + 1 + 2 * p2;
+
+            for (int n = 0; n < s0; ++n) {
+                for (int i = 0; i < r0; ++i) {
+                    for (int j = 0; j < r1; ++j) {
+                        for (int a = 0; a < f1; ++a) {
+                            for (int b = 0; b < f2; ++b) {
+
+                                // int c1 = i + (a - (f1 / 2)) * d1;
+                                // int c2 = j + (b - (f2 / 2)) * d2;
+
+                                int c1 = i + (a - p1) * d1;
+                                int c2 = j + (b - p2) * d2;
+
+                                if (c1 < 0 || c2 < 0 || c1 >= s1 || c2 >= s2) {
+                                    continue;
+                                }
+
+                                int input_base = n * r0 * r1 * f1 * f2 * s3 + i * r1 * f1 * f2 * s3
+                                    + j * f1 * f2 * s3 + a * f2 * s3 + b * s3;
+                                int output_base = n * s1 * s2 * s3 + c1 * s2 * s3 + c2 * s3;
+
+                                for (int k = 0; k < s3; ++k) {
+                                    assert(output_base + k < result_vec_size);
+                                    assert(input_base + k < u_vec_size);
+
+                                    result_data[output_base + k] += u_data[input_base + k];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
