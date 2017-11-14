@@ -315,6 +315,11 @@ namespace la {
         void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b);
 
+        void vdot(vector_like<double>& v, matrix_like<double> const& a,
+            matrix_like<double> const& b);
+        vector<double> vdot(matrix_like<double> const& a,
+            matrix_like<double> const& b);
+
         double norm(matrix_like<double> const& m);
 
         template <class T>
@@ -364,6 +369,11 @@ namespace la {
         void isub(tensor_like<double>& a, tensor_like<double> const& b);
 
         double dot(tensor_like<double> const& a, tensor_like<double> const& b);
+
+        void vdot(tensor_like<double>& v, tensor_like<double> const& a,
+            tensor_like<double> const& b);
+        tensor<double> vdot(tensor_like<double> const& a,
+            tensor_like<double> const& b);
 
         double norm(tensor_like<double> const& v);
 

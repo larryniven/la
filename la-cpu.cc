@@ -323,6 +323,30 @@ namespace la {
                 1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
         }
 
+        void vdot(vector_like<double>& v, matrix_like<double> const& a,
+            matrix_like<double> const& b)
+        {
+            assert(a.rows() == b.rows() && a.cols() == b.cols() && v.size() == a.rows());
+
+            for (int i = 0; i < a.rows(); ++i) {
+                weak_vector<double> a_vec {const_cast<double *>(a.data()) + i * a.cols(), a.cols()};
+                weak_vector<double> b_vec {const_cast<double *>(b.data()) + i * b.cols(), b.cols()};
+
+                v(i) = dot(a_vec, b_vec);
+            }
+        }
+
+        vector<double> vdot(matrix_like<double> const& a,
+            matrix_like<double> const& b)
+        {
+            vector<double> result;
+            result.resize(a.rows());
+
+            vdot(result, a, b);
+
+            return result;
+        }
+
         double norm(matrix_like<double> const& m)
         {
             return norm(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
@@ -494,6 +518,25 @@ namespace la {
         double norm(tensor_like<double> const& v)
         {
             return norm(v.as_vector());
+        }
+
+        void vdot(tensor_like<double>& v, tensor_like<double> const& a,
+            tensor_like<double> const& b)
+        {
+            vdot(v.as_vector(), a.as_matrix(), b.as_matrix());
+        }
+
+        tensor<double> vdot(tensor_like<double> const& a,
+            tensor_like<double> const& b)
+        {
+            tensor<double> result;
+            auto sizes = a.sizes();
+            sizes.pop_back();
+            result.resize(sizes);
+
+            vdot(result, a, b);
+
+            return result;
         }
 
         bool has_nan(tensor_like<double> const& a)
