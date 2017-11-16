@@ -108,7 +108,7 @@ namespace la {
             assert(z.size() == u.size() && u.size() == v.size());
 
             for (int i = 0; i < v.size(); ++i) {
-                z(i) = u(i) / v(i);
+                z(i) += u(i) / v(i);
             }
         }
 
