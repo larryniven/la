@@ -95,6 +95,13 @@ namespace la {
             return result;
         }
 
+        void idiv(double d, vector_like<double>& u)
+        {
+            for (int i = 0; i < u.size(); ++i) {
+                u(i) = d / u(i);
+            }
+        }
+
         void idiv(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
@@ -222,6 +229,16 @@ namespace la {
             weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
 
             isub(a, b);
+        }
+
+        void idiv(double d, matrix_like<double>& u)
+        {
+            idiv(d, u.as_vector());
+        }
+
+        void idiv(matrix_like<double>& u, matrix_like<double> const& v)
+        {
+            idiv(u.as_vector(), v.as_vector());
         }
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
@@ -410,6 +427,16 @@ namespace la {
         void imul(tensor_like<double>& u, double a)
         {
             imul(u.as_vector(), a);
+        }
+
+        void idiv(double d, tensor_like<double>& u)
+        {
+            idiv(d, u.as_vector());
+        }
+
+        void idiv(tensor_like<double>& u, tensor_like<double> const& v)
+        {
+            idiv(u.as_vector(), v.as_vector());
         }
 
         void mul(tensor_like<double>& u, tensor_like<double> const& a,
