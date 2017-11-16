@@ -102,13 +102,31 @@ namespace la {
             }
         }
 
-        void idiv(vector_like<double>& u, vector_like<double> const& v)
+        void ediv(vector_like<double>& z,
+            vector_like<double> const& u, vector_like<double> const& v)
+        {
+            assert(z.size() == u.size() && u.size() == v.size());
+
+            for (int i = 0; i < v.size(); ++i) {
+                z(i) = u(i) / v(i);
+            }
+        }
+
+        void iediv(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
 
             for (int i = 0; i < v.size(); ++i) {
                 u(i) /= v(i);
             }
+        }
+
+        vector<double> ediv(vector_like<double>& u, vector_like<double> const& v)
+        {
+            vector<double> z;
+            z.resize(u.size());
+            ediv(z, u, v);
+            return z;
         }
 
         void emul(vector_like<double>& z,
@@ -236,9 +254,23 @@ namespace la {
             idiv(d, u.as_vector());
         }
 
-        void idiv(matrix_like<double>& u, matrix_like<double> const& v)
+        void ediv(matrix_like<double>& z,
+            matrix_like<double> const& u, matrix_like<double> const& v)
         {
-            idiv(u.as_vector(), v.as_vector());
+            ediv(z.as_vector(), u.as_vector(), v.as_vector());
+        }
+
+        void iediv(matrix_like<double>& u, matrix_like<double> const& v)
+        {
+            iediv(u.as_vector(), v.as_vector());
+        }
+
+        matrix<double> ediv(matrix_like<double>& u, matrix_like<double> const& v)
+        {
+            matrix<double> z;
+            z.resize(u.rows(), u.cols());
+            ediv(z, u, v);
+            return z;
         }
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
@@ -434,9 +466,23 @@ namespace la {
             idiv(d, u.as_vector());
         }
 
-        void idiv(tensor_like<double>& u, tensor_like<double> const& v)
+        void ediv(tensor_like<double>& z,
+            tensor_like<double> const& u, tensor_like<double> const& v)
         {
-            idiv(u.as_vector(), v.as_vector());
+            ediv(z.as_vector(), u.as_vector(), v.as_vector());
+        }
+
+        void iediv(tensor_like<double>& u, tensor_like<double> const& v)
+        {
+            iediv(u.as_vector(), v.as_vector());
+        }
+
+        tensor<double> ediv(tensor_like<double>& u, tensor_like<double> const& v)
+        {
+            tensor<double> z;
+            resize_as(z, u);
+            ediv(z, u, v);
+            return z;
         }
 
         void mul(tensor_like<double>& u, tensor_like<double> const& a,

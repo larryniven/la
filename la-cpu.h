@@ -267,7 +267,11 @@ namespace la {
         vector<double> sub(vector_like<double> const& u, vector_like<double> const& v);
 
         void idiv(double d, vector_like<double>& u);
-        void idiv(vector_like<double>& u, vector_like<double> const& v);
+
+        void ediv(vector_like<double>& z, vector_like<double> const& u,
+            vector_like<double> const& v);
+        void iediv(vector_like<double>& u, vector_like<double> const& v);
+        vector<double> ediv(vector_like<double>& u, vector_like<double> const& v);
 
         void emul(vector_like<double>& z, vector_like<double> const& u,
             vector_like<double> const& v);
@@ -297,7 +301,10 @@ namespace la {
         void isub(matrix_like<double>& u, matrix_like<double> const& v);
 
         void idiv(double d, matrix_like<double>& u);
-        void idiv(matrix_like<double>& u, matrix_like<double> const& v);
+        void ediv(matrix_like<double>& z, matrix_like<double> const& u,
+            matrix_like<double> const& v);
+        void iediv(matrix_like<double>& u, matrix_like<double> const& v);
+        matrix<double> ediv(matrix_like<double>& u, matrix_like<double> const& v);
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
             vector_like<double> const& v);
@@ -352,7 +359,10 @@ namespace la {
         void imul(tensor_like<double>& u, double a);
 
         void idiv(double d, tensor_like<double>& u);
-        void idiv(tensor_like<double>& u, tensor_like<double> const& v);
+        void ediv(tensor_like<double>& z, tensor_like<double> const& u,
+            tensor_like<double> const& v);
+        void iediv(tensor_like<double>& u, tensor_like<double> const& v);
+        tensor<double> ediv(tensor_like<double>& u, tensor_like<double> const& v);
 
         void mul(tensor_like<double>& u, tensor_like<double> const& a,
             tensor_like<double> const& v);
