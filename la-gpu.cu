@@ -71,98 +71,11 @@ namespace la {
             cudaMemset(v.data(), 0, v.size() * sizeof(double));
         }
 
-        void imul(vector_like<double>& u, double d)
+        void axpy(vector_like<double>& y, double a, vector_like<double> const& x)
         {
-            cublasDscal(device::get_handle(), u.size(), &d, u.data(), 1);
-        }
+            assert(y.size() == x.size());
 
-        vector<double> mul(vector<double>&& u, double d)
-        {
-            vector<double> result { std::move(u) };
-            imul(u, d);
-            return result;
-        }
-
-        vector<double> mul(vector_like<double> const& u, double d)
-        {
-            vector<double> result { u };
-            imul(result, d);
-            return result;
-        }
-
-        void iadd(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            double alpha = 1;
-            cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
-        }
-
-        vector<double> add(
-            vector_like<double> const& u,
-            vector_like<double> const& v)
-        {
-            vector<double> result { u };
-            iadd(result, v);
-            return result;
-        }
-
-        vector<double> add(vector<double>&& u,
-            vector_like<double> const& v)
-        {
-            vector<double> result { std::move(u) };
-
-            iadd(result, v);
-
-            return result;
-        }
-
-        vector<double> add(vector_like<double> const& u,
-            vector<double>&& v)
-        {
-            vector<double> result { std::move(v) };
-
-            iadd(result, u);
-
-            return result;
-        }
-
-        void isub(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            double alpha = -1;
-            cublasDaxpy(device::get_handle(), u.size(), &alpha, v.data(), 1, u.data(), 1);
-        }
-
-        vector<double> sub(vector_like<double> const& u, vector_like<double> const& v)
-        {
-            vector<double> result { u };
-
-            isub(result, v);
-
-            return result;
-        }
-
-        struct idiv_op {
-            template <class T>
-            __host__ __device__
-            void operator()(T t) const
-            {
-                thrust::get<0>(t) /= thrust::get<1>(t);
-            }
-        };
-
-        void idiv(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            thrust::for_each(thrust::device,
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(u.begin()), thrust::device_ptr<double const>(v.begin()))),
-                thrust::make_zip_iterator(thrust::make_tuple(
-                    thrust::device_ptr<double>(u.end()), thrust::device_ptr<double const>(v.end()))),
-                idiv_op());
+            cublasDaxpy(device::get_handle(), y.size(), &a, x.data(), 1, y.data(), 1);
         }
 
         struct emul_op {
@@ -191,28 +104,57 @@ namespace la {
                     thrust::device_ptr<double const>(v.end())
                 )),
                 emul_op());
-
-#if 0
-            double alpha = 1;
-            double beta = 1;
-            cublasDgbmv(device::get_handle(), CUBLAS_OP_N, u.size(), u.size(), 0, 0,
-                &alpha, u.data(), 1, v.data(), 1, &beta, z.data(), 1);
-#endif
         }
 
-        void iemul(vector_like<double>& u, vector_like<double> const& v)
+        struct div_op {
+            double d;
+
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const
+            {
+                thrust::get<0>(t) += d / thrust::get<1>(t);
+            }
+        };
+
+        void div(vector_like<double>& z, double d, vector_like<double> const& u)
         {
-            emul(u, u, v);
+            assert(z.size() == u.size());
+
+            thrust::for_each(thrust::device,
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.begin()),
+                    thrust::device_ptr<double const>(u.begin()))),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.end()),
+                    thrust::device_ptr<double const>(u.end()))),
+                div_op(d));
         }
 
-        vector<double> emul(
-            vector_like<double> const& u,
-            vector_like<double> const& v)
+        struct ediv_op {
+            template <class T>
+            __host__ __device__
+            void operator()(T t) const
+            {
+                thrust::get<0>(t) += thrust::get<1>(t) / thrust::get<2>(t);
+            }
+        };
+
+        void ediv(vector_like<double>& z,
+            vector_like<double> const& u, vector_like<double> const& v)
         {
-            vector<double> result;
-            result.resize(u.size());
-            emul(result, u, v);
-            return result;
+            assert(z.size() == u.size() && u.size() == v.size());
+
+            thrust::for_each(thrust::device,
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.begin()),
+                    thrust::device_ptr<double const>(u.begin()),
+                    thrust::device_ptr<double const>(v.begin()))),
+                thrust::make_zip_iterator(thrust::make_tuple(
+                    thrust::device_ptr<double>(z.end()),
+                    thrust::device_ptr<double const>(u.end()),
+                    thrust::device_ptr<double const>(v.end()))),
+                ediv_op());
         }
 
         double norm(vector_like<double> const& v)
@@ -247,20 +189,14 @@ namespace la {
             return thrust::any_of(thrust::device, p, p + u.size(), isnan_op());
         }
 
-        void axpy(vector_like<double>& y, double a, vector_like<double> const& x)
-        {
-            assert(y.size() == x.size());
-
-            cublasDaxpy(device::get_handle(), y.size(), &a, x.data(), 1, y.data(), 1);
-        }
-
         // matrix operations
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v)
         {
             assert(u.rows() == v.rows() && u.cols() == v.cols());
 
-            cudaMemcpy(u.data(), v.data(), v.rows() * v.cols() * sizeof(double), cudaMemcpyDeviceToDevice);
+            cudaMemcpy(u.data(), v.data(), v.rows() * v.cols() * sizeof(double),
+                cudaMemcpyDeviceToDevice);
         }
 
         void zero(matrix_like<double>& m)
@@ -268,50 +204,26 @@ namespace la {
             cudaMemset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
         }
 
-        void imul(matrix_like<double>& u, double d)
+        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x)
         {
-            weak_vector<double> v(u.data(), u.rows() * u.cols());
-            imul(v, d);
+            axpy(y.as_vector(), a, x.as_vector());
         }
 
-        matrix<double> mul(matrix<double>&& u, double d)
+        void emul(matrix_like<double>& z, matrix_like<double> const& u,
+            matrix_like<double> const& v)
         {
-            matrix<double> result { std::move(u) };
-
-            imul(result, d);
-
-            return result;
+            emul(z.as_vector(), u.as_vector(), v.as_vector());
         }
 
-        matrix<double> mul(matrix_like<double> const& u, double d)
+        void div(matrix_like<double>& z, double d, matrix_like<double>& u)
         {
-            matrix<double> result { u };
-
-            imul(result, d);
-
-            return result;
+            div(z.as_vector(), d, u.as_vector());
         }
 
-        void iadd(matrix_like<double>& u, matrix_like<double> const& v)
+        void ediv(matrix_like<double>& z,
+            matrix_like<double> const& u, matrix_like<double> const& v)
         {
-            assert(u.rows() == v.rows());
-            assert(u.cols() == v.cols());
-
-            weak_vector<double> a {u.data(), u.rows() * u.cols()};
-            weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
-
-            iadd(a, b);
-        }
-
-        void isub(matrix_like<double>& u, matrix_like<double> const& v)
-        {
-            assert(u.rows() == v.rows());
-            assert(u.cols() == v.cols());
-
-            weak_vector<double> a {u.data(), u.rows() * u.cols()};
-            weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
-
-            isub(a, b);
+            ediv(z.as_vector(), u.as_vector(), v.as_vector());
         }
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
@@ -326,18 +238,6 @@ namespace la {
                 v.data(), 1, &beta, u.data(), 1);
         }
 
-        vector<double> mul(
-            matrix_like<double> const& a,
-            vector_like<double> const& v)
-        {
-            vector<double> result;
-            result.resize(a.rows());
-
-            mul(result, a, v);
-
-            return result;
-        }
-
         void lmul(vector_like<double>& u, 
             vector_like<double> const& v, matrix_like<double> const& a)
         {
@@ -350,18 +250,6 @@ namespace la {
                 v.data(), 1, &beta, u.data(), 1);
         }
 
-        vector<double> lmul(
-            vector_like<double> const& v,
-            matrix_like<double> const& a)
-        {
-            vector<double> result;
-            result.resize(a.cols());
-
-            lmul(result, v, a);
-    
-            return result;
-        }
- 
         void mul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b)
         {
@@ -373,16 +261,6 @@ namespace la {
 
             cublasDgemm(device::get_handle(), CUBLAS_OP_N, CUBLAS_OP_N, u.cols(), u.rows(), a.cols(),
                 &alpha, b.data(), b.cols(), a.data(), a.cols(), &beta, u.data(), u.cols());
-        }
-
-        matrix<double> mul(matrix_like<double> const& a,
-            matrix_like<double> const& b)
-        {
-            matrix<double> result;
-            result.resize(a.rows(), b.cols());
-            mul(result, a, b);
-
-            return result;
         }
 
         void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
@@ -413,22 +291,12 @@ namespace la {
 
         double norm(matrix_like<double> const& v)
         {
-            weak_vector<double> u(const_cast<double *>(v.data()), v.rows() * v.cols());
-            return norm(u);
+            return norm(v.as_vector());
         }
 
-        vector<double> tensor_prod(vector_like<double> const& a,
-            vector_like<double> const& b)
+        double dot(matrix_like<double> const& u, matrix_like<double> const& v)
         {
-            vector<double> result;
-            result.resize(a.size() * b.size());
-
-            double alpha = 1;
-            cublasDger(device::get_handle(), b.size(), a.size(),
-                &alpha, b.data(), 1, a.data(), 1,
-                result.data(), b.size());
-
-            return result;
+            return dot(u.as_vector(), v.as_vector());
         }
 
         void outer_prod(matrix_like<double>& result,
@@ -443,30 +311,12 @@ namespace la {
                 result.data(), b.size());
         }
 
-        matrix<double> outer_prod(vector_like<double> const& a,
-            vector_like<double> const& b)
-        {
-            matrix<double> result;
-            result.resize(a.size(), b.size());
-
-            outer_prod(result, a, b);
-
-            return result;
-        }
-
         bool has_nan(matrix_like<double> const& m)
         {
-            weak_vector<double> v { const_cast<double*>(m.data()), m.rows() * m.cols() };
-            return has_nan(v);
+            return has_nan(m.as_vector());
         }
 
-        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x)
-        {
-            weak_vector<double> y_v { y.data(), y.rows() * y.cols() };
-            weak_vector<double> x_v { const_cast<double*>(x.data()), x.rows() * x.cols() };
-
-            axpy(y_v, a, x_v);
-        }
+        // tensor operations
 
         void copy(tensor_like<double>& u, tensor_like<double> const& v)
         {
@@ -478,70 +328,9 @@ namespace la {
             std::memset(u.data(), 0, u.vec_size() * sizeof(double));
         }
 
-        void imul(tensor_like<double>& u, double a)
+        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
         {
-            imul(u.as_vector(), a);
-        }
-
-        void mul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& v)
-        {
-            if (a.dim() == 1) {
-                lmul(u.as_vector(), a.as_vector(), v.as_matrix());
-            } else {
-                mul(u.as_matrix(), a.as_matrix(), v.as_matrix());
-            }
-        }
-
-        void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& b)
-        {
-            if (a.dim() == 1 && b.dim() == 1) {
-                outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
-            } else {
-                ltmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
-            }
-        }
-
-        void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& b)
-        {
-            if (a.dim() == 1) {
-                mul(u.as_vector(), b.as_matrix(), a.as_vector());
-            } else {
-                rtmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
-            }
-        }
-
-        tensor<double> mul(tensor_like<double> const& m,
-            double a)
-        {
-            tensor<double> result { m };
-
-            imul(result, a);
-
-            return result;
-        }
-
-        tensor<double> mul(tensor_like<double> const& a,
-            tensor_like<double> const& v)
-        {
-            tensor<double> result;
-
-            std::vector<unsigned int> sizes = a.sizes();
-            sizes.pop_back();
-            sizes.push_back(v.size(v.dim() - 1));
-
-            result.resize(sizes);
-
-            mul(result, a, v);
-
-            return result;
-        }
-
-        void resize_as(tensor<double>& a, tensor_like<double> const& b, double value)
-        {
-            a.resize(b.sizes(), value);
+            axpy(y.as_vector(), a, x.as_vector());
         }
 
         void emul(tensor_like<double>& z, tensor_like<double> const& u,
@@ -550,19 +339,71 @@ namespace la {
             emul(z.as_vector(), u.as_vector(), v.as_vector());
         }
 
-        void iadd(tensor_like<double>& a, tensor_like<double> const& b)
+        void div(tensor_like<double>& z, double d, tensor_like<double> const& u)
         {
-            iadd(a.as_vector(), b.as_vector());
+            div(z.as_vector(), d, u.as_vector());
         }
 
-        void isub(tensor_like<double>& a, tensor_like<double> const& b)
+        void ediv(tensor_like<double>& z, tensor_like<double> const& u,
+            tensor_like<double> const& v)
         {
-            isub(a.as_vector(), b.as_vector());
+            ediv(z.as_vector(), u.as_vector(), v.as_vector());
         }
 
-        double dot(tensor_like<double> const& a, tensor_like<double> const& b)
+        void mul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& v)
         {
-            return dot(a.as_vector(), b.as_vector());
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& v_mat = v.as_matrix();
+
+            if (a_mat.cols() == 1 && v_mat.rows() == 1) {
+                outer_prod(u.as_matrix(), a.as_vector(), v.as_vector());
+            } else if (a_mat.rows() == 1 && v_mat.cols() != 1) {
+                lmul(u.as_vector(), a.as_vector(), v.as_matrix());
+            } else if (a_mat.rows() != 1 && v_mat.cols() == 1) {
+                mul(u.as_vector(), a.as_matrix(), v.as_vector());
+            } else {
+                mul(u.as_matrix(), a.as_matrix(), v.as_matrix());
+            }
+        }
+
+        void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b)
+        {
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& b_mat = b.as_matrix();
+
+            if (a_mat.rows() == 1 && b_mat.rows() == 1) {
+                outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
+            } else if (a_mat.rows() != 1 && b_mat.cols() == 1) {
+                lmul(u.as_vector(), b.as_vector(), a.as_matrix());
+            } else if (a_mat.cols() == 1 && b_mat.cols() != 1) {
+                lmul(u.as_vector(), a.as_vector(), b.as_matrix());
+            } else {
+                ltmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
+            }
+        }
+
+        void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b)
+        {
+            matrix_like<double> const& a_mat = a.as_matrix();
+            matrix_like<double> const& b_mat = b.as_matrix();
+
+            if (a_mat.cols() == 1 && b_mat.cols() == 1) {
+                outer_prod(u.as_matrix(), a.as_vector(), b.as_vector());
+            } else if (a_mat.rows() == 1 && b_mat.cols() != 1) {
+                mul(u.as_vector(), b.as_matrix(), a.as_vector());
+            } else if (a_mat.rows() != 1 && b_mat.rows() == 1) {
+                mul(u.as_vector(), a.as_matrix(), b.as_vector());
+            } else {
+                rtmul(u.as_matrix(), a.as_matrix(), b.as_matrix());
+            }
+        }
+
+        void resize_as(tensor<double>& a, tensor_like<double> const& b, double value)
+        {
+            a.resize(b.sizes(), value);
         }
 
         double norm(tensor_like<double> const& v)
@@ -570,14 +411,14 @@ namespace la {
             return norm(v.as_vector());
         }
 
+        double dot(tensor_like<double> const& a, tensor_like<double> const& b)
+        {
+            return dot(a.as_vector(), b.as_vector());
+        }
+
         bool has_nan(tensor_like<double> const& a)
         {
             return has_nan(a.as_vector());
-        }
-
-        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
-        {
-            axpy(y.as_vector(), a, x.as_vector());
         }
 
     }

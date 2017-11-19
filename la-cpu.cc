@@ -8,6 +8,8 @@ namespace la {
 
     namespace cpu {
 
+        // vector operation
+
         void copy(vector_like<double>& u, vector_like<double> const& v)
         {
             assert(u.size() == v.size());
@@ -20,85 +22,30 @@ namespace la {
             std::memset(u.data(), 0, u.size() * sizeof(double));
         }
 
-        void imul(vector_like<double>& u, double d)
+        void axpy(vector_like<double>& y, double a, vector_like<double> const& x)
         {
-            cblas_dscal(u.size(), d, u.data(), 1);
+            assert(y.size() == x.size());
+
+            cblas_daxpy(y.size(), a, x.data(), 1, y.data(), 1);
         }
 
-        vector<double> mul(vector<double>&& u, double d)
-        {
-            vector<double> result { std::move(u) };
-
-            imul(result, d);
-
-            return result;
-        }
-
-        vector<double> mul(vector_like<double> const& u, double d)
-        {
-            vector<double> result { u };
-
-            imul(result, d);
-
-            return result;
-        }
-
-        void iadd(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            cblas_daxpy(u.size(), 1, v.data(), 1, u.data(), 1);
-        }
-
-        vector<double> add(vector_like<double> const& u, vector_like<double> const& v)
-        {
-            vector<double> result { u };
-
-            iadd(result, v);
-
-            return result;
-        }
-
-        vector<double> add(vector<double>&& u,
+        void emul(vector_like<double>& z,
+            vector_like<double> const& u,
             vector_like<double> const& v)
         {
-            vector<double> result { std::move(u) };
+            assert(u.size() == v.size() && z.size() == v.size());
 
-            iadd(result, v);
-
-            return result;
+            for (int i = 0; i < z.size(); ++i) {
+                z(i) += u(i) * v(i);
+            }
         }
 
-        vector<double> add(vector_like<double> const& u,
-            vector<double>&& v)
+        void div(vector_like<double>& z, double d, vector_like<double> const& v)
         {
-            vector<double> result { std::move(v) };
+            assert(z.size() == v.size());
 
-            iadd(result, u);
-
-            return result;
-        }
-
-        void isub(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            cblas_daxpy(u.size(), -1, v.data(), 1, u.data(), 1);
-        }
-
-        vector<double> sub(vector_like<double> const& u, vector_like<double> const& v)
-        {
-            vector<double> result { u };
-
-            isub(result, v);
-
-            return result;
-        }
-
-        void idiv(double d, vector_like<double>& u)
-        {
-            for (int i = 0; i < u.size(); ++i) {
-                u(i) = d / u(i);
+            for (int i = 0; i < z.size(); ++i) {
+                z(i) += d / v(i);
             }
         }
 
@@ -110,55 +57,6 @@ namespace la {
             for (int i = 0; i < v.size(); ++i) {
                 z(i) += u(i) / v(i);
             }
-        }
-
-        void iediv(vector_like<double>& u, vector_like<double> const& v)
-        {
-            assert(u.size() == v.size());
-
-            for (int i = 0; i < v.size(); ++i) {
-                u(i) /= v(i);
-            }
-        }
-
-        vector<double> ediv(vector_like<double>& u, vector_like<double> const& v)
-        {
-            vector<double> z;
-            z.resize(u.size());
-            ediv(z, u, v);
-            return z;
-        }
-
-        void emul(vector_like<double>& z,
-            vector_like<double> const& u,
-            vector_like<double> const& v)
-        {
-            assert(u.size() == v.size() && z.size() == v.size());
-
-            double *z_data = z.data();
-            double const *u_data = u.data();
-            double const *v_data = v.data();
-
-            for (int i = 0; i < z.size(); ++i) {
-                z_data[i] += u_data[i] * v_data[i];
-            }
-        }
-
-        void iemul(vector_like<double>& u, vector_like<double> const& v)
-        {
-            emul(u, u, v);
-        }
-
-        vector<double> emul(
-            vector_like<double> const& u,
-            vector_like<double> const& v)
-        {
-            vector<double> result;
-            result.resize(u.size());
-
-            emul(result, u, v);
-
-            return result;
         }
 
         double norm(vector_like<double> const& v)
@@ -184,12 +82,7 @@ namespace la {
             return false;
         }
 
-        void axpy(vector_like<double>& y, double a, vector_like<double> const& x)
-        {
-            assert(y.size() == x.size());
-
-            cblas_daxpy(y.size(), a, x.data(), 1, y.data(), 1);
-        }
+        // matrix operation
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v)
         {
@@ -203,74 +96,28 @@ namespace la {
             std::memset(m.data(), 0, m.rows() * m.cols() * sizeof(double));
         }
 
-        void imul(matrix_like<double>& u, double d)
+        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x)
         {
-            weak_vector<double> v(u.data(), u.rows() * u.cols());
-            imul(v, d);
+            assert(y.rows() == x.rows() && y.cols() == x.cols());
+
+            cblas_daxpy(y.rows() * y.cols(), a, x.data(), 1, y.data(), 1);
         }
 
-        matrix<double> mul(matrix<double>&& u, double d)
+        void emul(matrix_like<double>& z,
+            matrix_like<double> const& u, matrix_like<double> const& v)
         {
-            matrix<double> result { std::move(u) };
-
-            imul(result, d);
-
-            return result;
+            emul(z.as_vector(), u.as_vector(), v.as_vector());
         }
 
-        matrix<double> mul(matrix_like<double> const& u, double d)
+        void div(matrix_like<double>& z, double d, matrix_like<double> const& u)
         {
-            matrix<double> result { u };
-
-            imul(result, d);
-
-            return result;
-        }
-
-        void iadd(matrix_like<double>& u, matrix_like<double> const& v)
-        {
-            assert(u.rows() == v.rows());
-            assert(u.cols() == v.cols());
-
-            weak_vector<double> a {u.data(), u.rows() * u.cols()};
-            weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
-
-            iadd(a, b);
-        }
-
-        void isub(matrix_like<double>& u, matrix_like<double> const& v)
-        {
-            assert(u.rows() == v.rows());
-            assert(u.cols() == v.cols());
-
-            weak_vector<double> a {u.data(), u.rows() * u.cols()};
-            weak_vector<double> b {const_cast<double*>(v.data()), v.rows() * v.cols()};
-
-            isub(a, b);
-        }
-
-        void idiv(double d, matrix_like<double>& u)
-        {
-            idiv(d, u.as_vector());
+            div(z.as_vector(), d, u.as_vector());
         }
 
         void ediv(matrix_like<double>& z,
             matrix_like<double> const& u, matrix_like<double> const& v)
         {
             ediv(z.as_vector(), u.as_vector(), v.as_vector());
-        }
-
-        void iediv(matrix_like<double>& u, matrix_like<double> const& v)
-        {
-            iediv(u.as_vector(), v.as_vector());
-        }
-
-        matrix<double> ediv(matrix_like<double>& u, matrix_like<double> const& v)
-        {
-            matrix<double> z;
-            z.resize(u.rows(), u.cols());
-            ediv(z, u, v);
-            return z;
         }
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
@@ -288,18 +135,6 @@ namespace la {
 
             cblas_dgemv(CblasRowMajor, CblasNoTrans, a.rows(), a.cols(), 1, a.data(), a.cols(),
                 v.data(), 1, 1, u.data(), 1);
-        }
-
-        vector<double> mul(
-            matrix_like<double> const& u,
-            vector_like<double> const& v)
-        {
-            vector<double> result;
-            result.resize(u.rows());
-
-            mul(result, u, v);
-
-            return result;
         }
 
         void lmul(vector_like<double>& u,
@@ -320,18 +155,6 @@ namespace la {
                 v.data(), 1, 1, u.data(), 1);
         }
 
-        vector<double> lmul(
-            vector_like<double> const& v,
-            matrix_like<double> const& a)
-        {
-            vector<double> result;
-            result.resize(a.cols());
-
-            lmul(result, v, a);
-
-            return result;
-        }
-
         void mul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b)
         {
@@ -340,16 +163,6 @@ namespace la {
 
             cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, u.rows(), u.cols(), a.cols(),
                 1, a.data(), a.cols(), b.data(), b.cols(), 1, u.data(), u.cols());
-        }
-
-        matrix<double> mul(matrix_like<double> const& a,
-            matrix_like<double> const& b)
-        {
-            matrix<double> result;
-            result.resize(a.rows(), b.cols());
-            mul(result, a, b);
-
-            return result;
         }
 
         void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
@@ -385,32 +198,9 @@ namespace la {
             }
         }
 
-        vector<double> vdot(matrix_like<double> const& a,
-            matrix_like<double> const& b)
-        {
-            vector<double> result;
-            result.resize(a.rows());
-
-            vdot(result, a, b);
-
-            return result;
-        }
-
         double norm(matrix_like<double> const& m)
         {
             return norm(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
-        }
-
-        vector<double> tensor_prod(vector_like<double> const& a,
-            vector_like<double> const& b)
-        {
-            vector<double> result;
-            result.resize(a.size() * b.size());
-
-            cblas_dger(CblasRowMajor, a.size(), b.size(), 1, a.data(), 1, b.data(), 1,
-                result.data(), b.size());
-
-            return result;
         }
 
         void outer_prod(matrix_like<double>& result,
@@ -423,28 +213,12 @@ namespace la {
                 result.data(), b.size());
         }
 
-        matrix<double> outer_prod(vector_like<double> const& a,
-            vector_like<double> const& b)
-        {
-            matrix<double> result;
-            result.resize(a.size(), b.size());
-
-            outer_prod(result, a, b);
-
-            return result;
-        }
-
         bool has_nan(matrix_like<double> const& m)
         {
             return has_nan(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
         }
 
-        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x)
-        {
-            assert(y.rows() == x.rows() && y.cols() == x.cols());
-
-            cblas_daxpy(y.rows() * y.cols(), a, x.data(), 1, y.data(), 1);
-        }
+        // tensor operation
 
         void copy(tensor_like<double>& u, tensor_like<double> const& v)
         {
@@ -456,33 +230,26 @@ namespace la {
             std::memset(u.data(), 0, u.vec_size() * sizeof(double));
         }
 
-        void imul(tensor_like<double>& u, double a)
+        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
         {
-            imul(u.as_vector(), a);
+            axpy(y.as_vector(), a, x.as_vector());
         }
 
-        void idiv(double d, tensor_like<double>& u)
+        void emul(tensor_like<double>& z, tensor_like<double> const& u,
+            tensor_like<double> const& v)
         {
-            idiv(d, u.as_vector());
+            emul(z.as_vector(), u.as_vector(), v.as_vector());
+        }
+
+        void div(tensor_like<double>& z, double d, tensor_like<double> const& u)
+        {
+            div(z.as_vector(), d, u.as_vector());
         }
 
         void ediv(tensor_like<double>& z,
             tensor_like<double> const& u, tensor_like<double> const& v)
         {
             ediv(z.as_vector(), u.as_vector(), v.as_vector());
-        }
-
-        void iediv(tensor_like<double>& u, tensor_like<double> const& v)
-        {
-            iediv(u.as_vector(), v.as_vector());
-        }
-
-        tensor<double> ediv(tensor_like<double>& u, tensor_like<double> const& v)
-        {
-            tensor<double> z;
-            resize_as(z, u);
-            ediv(z, u, v);
-            return z;
         }
 
         void mul(tensor_like<double>& u, tensor_like<double> const& a,
@@ -536,51 +303,9 @@ namespace la {
             }
         }
 
-        tensor<double> mul(tensor_like<double> const& m,
-            double a)
-        {
-            tensor<double> result { m };
-
-            imul(result, a);
-
-            return result;
-        }
-
-        tensor<double> mul(tensor_like<double> const& a,
-            tensor_like<double> const& v)
-        {
-            tensor<double> result;
-
-            std::vector<unsigned int> sizes = a.sizes();
-            sizes.pop_back();
-            sizes.push_back(v.size(v.dim() - 1));
-
-            result.resize(sizes);
-
-            mul(result, a, v);
-
-            return result;
-        }
-
         void resize_as(tensor<double>& a, tensor_like<double> const& b, double value)
         {
             a.resize(b.sizes(), value);
-        }
-
-        void emul(tensor_like<double>& z, tensor_like<double> const& u,
-            tensor_like<double> const& v)
-        {
-            emul(z.as_vector(), u.as_vector(), v.as_vector());
-        }
-
-        void iadd(tensor_like<double>& a, tensor_like<double> const& b)
-        {
-            iadd(a.as_vector(), b.as_vector());
-        }
-
-        void isub(tensor_like<double>& a, tensor_like<double> const& b)
-        {
-            isub(a.as_vector(), b.as_vector());
         }
 
         double dot(tensor_like<double> const& a, tensor_like<double> const& b)
@@ -599,45 +324,11 @@ namespace la {
             vdot(v.as_vector(), a.as_matrix(), b.as_matrix());
         }
 
-        tensor<double> vdot(tensor_like<double> const& a,
-            tensor_like<double> const& b)
-        {
-            tensor<double> result;
-            auto sizes = a.sizes();
-            sizes.pop_back();
-            result.resize(sizes);
-
-            vdot(result, a, b);
-
-            return result;
-        }
-
         bool has_nan(tensor_like<double> const& a)
         {
             return has_nan(a.as_vector());
         }
 
-        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
-        {
-            axpy(y.as_vector(), a, x.as_vector());
-        }
-
-        /*
-         * 
-         * f1: first dimension of the filters
-         * f2: second dimension of the filters
-         * 
-         * p1: first dimension of padding
-         * p2: second dimension of padding
-         * 
-         * d1: first dimension of dilation
-         * d2: second dimension of dilation
-         *
-         * this function ignores the dimension of result.
-         * 
-         * u is assumed to have dimension batch size x time x freq x channel
-         * 
-         */
         void corr_linearize(tensor_like<double>& result,
             tensor_like<double> const& u,
             int f1, int f2, int p1, int p2, int d1, int d2)
@@ -698,22 +389,6 @@ namespace la {
             corr_linearize(result, u, f1, f2, 0, 0, 1, 1);
         }
 
-        /*
-         * 
-         * f1: first dimension of the filters
-         * f2: second dimension of the filters
-         * 
-         * p1: first dimension of padding
-         * p2: second dimension of padding
-         * 
-         * d1: first dimension of dilation
-         * d2: second dimension of dilation
-         *
-         * this function ignores the dimension of u.
-         * 
-         * result is assumed to have dimension batch size x time x freq x channel
-         * 
-         */
         void corr_delinearize(tensor_like<double>& result,
             tensor_like<double> const& u,
             int f1, int f2, int p1, int p2, int d1, int d2)

@@ -261,28 +261,15 @@ namespace la {
 
         void zero(vector_like<double>& v);
 
-        void imul(vector_like<double>& u, double d);
-        vector<double> mul(vector<double>&& u, double d);
-        vector<double> mul(vector_like<double> const& u, double d);
-
-        void iadd(vector_like<double>& u, vector_like<double> const& v);
-        vector<double> add(vector_like<double> const& u,
-            vector_like<double> const& v);
-        vector<double> add(vector<double>&& u,
-            vector_like<double> const& v);
-        vector<double> add(vector_like<double> const& u,
-            vector<double>&& v);
-
-        void isub(vector_like<double>& u, vector_like<double> const& v);
-        vector<double> sub(vector_like<double> const& u, vector_like<double> const& v);
-
-        void idiv(vector_like<double>& u, vector_like<double> const& v);
+        void axpy(vector_like<double>& y, double a, vector_like<double> const& x);
 
         void emul(vector_like<double>& z, vector_like<double> const& u,
             vector_like<double> const& v);
-        void iemul(vector_like<double>& u, vector_like<double> const& v);
-        vector<double> emul(vector_like<double> const& u,
-            vector_like<double> const& v);
+
+        void div(vector_like<double>& z, double d, vector_like<double>& u);
+
+        void ediv(vector_like<double>& z,
+            vector_like<double> const& u, vector_like<double> const& v);
 
         double norm(vector_like<double> const& v);
 
@@ -290,56 +277,46 @@ namespace la {
 
         bool has_nan(vector_like<double> const& u);
 
-        void axpy(vector_like<double>& y, double a, vector_like<double> const& x);
-
         // matrix operation
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v);
 
         void zero(matrix_like<double>& m);
 
-        void imul(matrix_like<double>& u, double d);
-        matrix<double> mul(matrix<double>&& u, double d);
-        matrix<double> mul(matrix_like<double> const& u, double d);
+        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x);
 
-        void iadd(matrix_like<double>& u, matrix_like<double> const& v);
-        void isub(matrix_like<double>& u, matrix_like<double> const& v);
+        void emul(matrix_like<double>& z, matrix_like<double> const& u,
+            matrix_like<double> const& v);
+
+        void div(matrix_like<double>& z, double d, matrix_like<double>& u);
+
+        void ediv(matrix_like<double>& z,
+            matrix_like<double> const& u, matrix_like<double> const& v);
 
         void mul(vector_like<double>& u, matrix_like<double> const& a,
-            vector_like<double> const& v);
-        vector<double> mul(matrix_like<double> const& a,
             vector_like<double> const& v);
 
         void lmul(vector_like<double>& u, 
             vector_like<double> const& v, matrix_like<double> const& a);
-        vector<double> lmul(vector_like<double> const& v,
-            matrix_like<double> const& a);
 
         void mul(matrix_like<double>& u, matrix_like<double> const& a,
-            matrix_like<double> const& b);
-        matrix<double> mul(matrix_like<double> const& a,
             matrix_like<double> const& b);
 
         void ltmul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b);
+
         void rtmul(matrix_like<double>& u, matrix_like<double> const& a,
             matrix_like<double> const& b);
 
         double norm(matrix_like<double> const& v);
 
-        vector<double> tensor_prod(vector_like<double> const& a,
-            vector_like<double> const& b);
+        double dot(matrix_like<double> const& u, matrix_like<double> const& v);
 
         void outer_prod(matrix_like<double>& result,
             vector_like<double> const& a,
             vector_like<double> const& b);
 
-        matrix<double> outer_prod(vector_like<double> const& a,
-            vector_like<double> const& b);
-
         bool has_nan(matrix_like<double> const& m);
-
-        void axpy(matrix_like<double>& y, double a, matrix_like<double> const& x);
 
         // tensor operation
 
@@ -347,36 +324,33 @@ namespace la {
 
         void zero(tensor_like<double>& m);
 
-        void imul(tensor_like<double>& u, double a);
-
-        void mul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& v);
-        void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& b);
-        void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
-            tensor_like<double> const& b);
-
-        tensor<double> mul(tensor_like<double> const& m,
-            double a);
-        tensor<double> mul(tensor_like<double> const& a,
-            tensor_like<double> const& v);
-
-        void resize_as(tensor<double>& a, tensor_like<double> const& b, double value = 0);
+        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
 
         void emul(tensor_like<double>& z, tensor_like<double> const& u,
             tensor_like<double> const& v);
 
-        void iadd(tensor_like<double>& a, tensor_like<double> const& b);
+        void div(tensor_like<double>& z, double d,
+            tensor_like<double> const& u);
 
-        void isub(tensor_like<double>& a, tensor_like<double> const& b);
+        void ediv(tensor_like<double>& z, tensor_like<double> const& u,
+            tensor_like<double> const& v);
 
-        double dot(tensor_like<double> const& a, tensor_like<double> const& b);
+        void mul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& v);
+
+        void ltmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b);
+
+        void rtmul(tensor_like<double>& u, tensor_like<double> const& a,
+            tensor_like<double> const& b);
+
+        void resize_as(tensor<double>& a, tensor_like<double> const& b, double value = 0);
 
         double norm(tensor_like<double> const& v);
 
-        bool has_nan(tensor_like<double> const& m);
+        double dot(tensor_like<double> const& a, tensor_like<double> const& b);
 
-        void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x);
+        bool has_nan(tensor_like<double> const& m);
 
     }
 }
