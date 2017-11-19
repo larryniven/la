@@ -8,7 +8,7 @@ namespace la {
 
     namespace cpu {
 
-        // vector operation
+        // vector operations
 
         void copy(vector_like<double>& u, vector_like<double> const& v)
         {
@@ -82,7 +82,25 @@ namespace la {
             return false;
         }
 
-        // matrix operation
+        void exp(vector_like<double>& z, vector_like<double> const& u)
+        {
+            assert(z.size() == u.size());
+
+            for (int i = 0; i < z.size(); ++i) {
+                z(i) += std::exp(u(i));
+            }
+        }
+
+        void log(vector_like<double>& z, vector_like<double> const& u)
+        {
+            assert(z.size() == u.size());
+
+            for (int i = 0; i < z.size(); ++i) {
+                z(i) += std::log(u(i));
+            }
+        }
+
+        // matrix operations
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v)
         {
@@ -218,7 +236,17 @@ namespace la {
             return has_nan(weak_vector<double> { const_cast<double*>(m.data()), m.rows() * m.cols() });
         }
 
-        // tensor operation
+        void exp(matrix_like<double>& z, matrix_like<double> const& u)
+        {
+            exp(z.as_vector(), u.as_vector());
+        }
+
+        void log(matrix_like<double>& z, matrix_like<double> const& u)
+        {
+            log(z.as_vector(), u.as_vector());
+        }
+
+        // tensor operations
 
         void copy(tensor_like<double>& u, tensor_like<double> const& v)
         {
@@ -327,6 +355,16 @@ namespace la {
         bool has_nan(tensor_like<double> const& a)
         {
             return has_nan(a.as_vector());
+        }
+
+        void exp(tensor_like<double>& z, tensor_like<double> const& u)
+        {
+            exp(z.as_vector(), u.as_vector());
+        }
+
+        void log(tensor_like<double>& z, tensor_like<double> const& u)
+        {
+            log(z.as_vector(), u.as_vector());
         }
 
         void corr_linearize(tensor_like<double>& result,

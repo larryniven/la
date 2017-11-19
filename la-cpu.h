@@ -245,7 +245,7 @@ namespace la {
             weak_matrix<double> mat_;
         };
 
-        // vector operation
+        // vector operations
 
         void copy(vector_like<double>& u, vector_like<double> const& v);
 
@@ -267,7 +267,11 @@ namespace la {
 
         bool has_nan(vector_like<double> const& u);
 
-        // matrix operation
+        void exp(vector_like<double>& z, vector_like<double> const& u);
+
+        void log(vector_like<double>& z, vector_like<double> const& u);
+
+        // matrix operations
 
         void copy(matrix_like<double>& u, matrix_like<double> const& v);
 
@@ -309,10 +313,14 @@ namespace la {
 
         bool has_nan(matrix_like<double> const& m);
 
+        void exp(matrix_like<double>& z, matrix_like<double> const& u);
+
+        void log(matrix_like<double>& z, matrix_like<double> const& u);
+
         template <class T>
         matrix<T> trans(matrix_like<T> const& m);
 
-        // tensor operation
+        // tensor operations
 
         void copy(tensor_like<double>& u, tensor_like<double> const& v);
 
@@ -347,6 +355,10 @@ namespace la {
         double norm(tensor_like<double> const& v);
 
         bool has_nan(tensor_like<double> const& m);
+
+        void exp(tensor_like<double>& z, tensor_like<double> const& u);
+
+        void log(tensor_like<double>& z, tensor_like<double> const& u);
 
         /*
          * 
