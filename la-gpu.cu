@@ -128,7 +128,7 @@ namespace la {
                 thrust::make_zip_iterator(thrust::make_tuple(
                     thrust::device_ptr<double>(z.end()),
                     thrust::device_ptr<double const>(u.end()))),
-                div_op(d));
+                div_op{d});
         }
 
         struct ediv_op {
