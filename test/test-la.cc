@@ -15,36 +15,25 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
     {"test-mul", []() {
         la::cpu::matrix<double> a {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
         la::cpu::vector<double> b {1, 2, 3};
-        la::cpu::vector<double> r = mul(a, b);
-        ebt::assert_equals(3, r.size());
+
+        la::cpu::vector<double> r;
+        r.resize(a.cols());
+
+        mul(r, a, b);
+
         ebt::assert_equals(14, r(0));
         ebt::assert_equals(32, r(1));
         ebt::assert_equals(50, r(2));
     }},
 
-    {"test-tensor-product", []() {
-        la::cpu::vector<double> a {1, 2};
-        la::cpu::vector<double> b {3, 4, 5};
-        la::cpu::vector<double> c = tensor_prod(a, b);
-
-        ebt::assert_equals(6, c.size());
-
-        ebt::assert_equals(3, c(0));
-        ebt::assert_equals(4, c(1));
-        ebt::assert_equals(5, c(2));
-
-        ebt::assert_equals(6, c(3));
-        ebt::assert_equals(8, c(4));
-        ebt::assert_equals(10, c(5));
-    }},
-
     {"test-outer-product", []() {
         la::cpu::vector<double> a {1, 2};
         la::cpu::vector<double> b {3, 4, 5};
-        la::cpu::matrix<double> c = outer_prod(a, b);
 
-        ebt::assert_equals(2, c.rows());
-        ebt::assert_equals(3, c.cols());
+        la::cpu::matrix<double> c;
+        c.resize(a.size(), b.size());
+
+        outer_prod(c, a, b);
 
         ebt::assert_equals(3, c(0, 0));
         ebt::assert_equals(4, c(0, 1));
@@ -91,6 +80,7 @@ std::vector<std::pair<std::string, std::function<void(void)>>> tests = {
 
         ebt::assert_equals(2, z({0}));
     }},
+
 };
 
 int main()

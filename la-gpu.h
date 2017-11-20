@@ -266,7 +266,7 @@ namespace la {
         void emul(vector_like<double>& z, vector_like<double> const& u,
             vector_like<double> const& v);
 
-        void div(vector_like<double>& z, double d, vector_like<double>& u);
+        void div(vector_like<double>& z, double d, vector_like<double> const& u);
 
         void ediv(vector_like<double>& z,
             vector_like<double> const& u, vector_like<double> const& v);
