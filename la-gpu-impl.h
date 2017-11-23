@@ -348,7 +348,7 @@ namespace la {
 
         template <class T>
         tensor<T>::tensor()
-            : data_(), sizes_(), dim_(0), vec_size_(0), vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
+            : data_(), sizes_(), dim_(0), vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
         {
         }
 
@@ -356,9 +356,9 @@ namespace la {
         tensor<T>::tensor(tensor<T>&& that)
             : data_(std::move(that.data_))
             , sizes_(std::move(that.sizes_))
-            , dim_(that.dim_), vec_size_(that.vec_size_)
-            , vec_(data_.data(), vec_size_)
-            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+            , dim_(that.dim_)
+            , vec_(data_.data(), data_.size())
+            , mat_(data_.data(), data_.size() / sizes_.back(), sizes_.back())
         {}
 
         template <class T>
@@ -373,14 +373,14 @@ namespace la {
 
         template <class T>
         tensor<T>::tensor(la::cpu::tensor_like<T> const& ht)
-            : data_(ht.as_vector()), sizes_(ht.sizes()), dim_(ht.dim()), vec_size_(ht.vec_size())
-            , vec_(data_.data(), vec_size_)
-            , mat_(data_.data(), vec_size_ / sizes_.back(), sizes_.back())
+            : data_(ht.as_vector()), sizes_(ht.sizes()), dim_(ht.dim())
+            , vec_(data_.data(), ht.vec_size())
+            , mat_(data_.data(), ht.vec_size() / sizes_.back(), sizes_.back())
         {}
 
         template <class T>
         tensor<T>::tensor(vector<T>&& data, std::vector<unsigned int> sizes)
-            : data_(std::move(data)), sizes_(sizes), dim_(0), vec_size_(0)
+            : data_(std::move(data)), sizes_(sizes), dim_(0)
             , vec_(data_.data(), 0), mat_(data_.data(), 0, 0)
         {
             dim_ = sizes_.size();
@@ -391,12 +391,9 @@ namespace la {
                     d *= sizes_[i];
                 }
 
-                vec_size_ = d;
-
-                vec_ = weak_vector<T>{data_.data(), vec_size_};
+                vec_ = weak_vector<T>{data_.data(), d};
                 mat_ = weak_matrix<T>{data_.data(), d / sizes_.back(), sizes_.back()};
             } else {
-                vec_size_ = 0;
                 vec_ = weak_vector<T>{data_.data(), 0};
                 mat_ = weak_matrix<T>{data_.data(), 0, 0};
             }
@@ -443,7 +440,6 @@ namespace la {
                 sizes_ = std::vector<unsigned int>();
                 data_.resize(0);
                 dim_ = 0;
-                vec_size_ = 0;
 
                 vec_ = weak_vector<T>{data_.data(), 0};
                 mat_ = weak_matrix<T>{data_.data(), 0, 0};
@@ -458,9 +454,8 @@ namespace la {
                 data_.resize(d, value);
 
                 dim_ = sizes_.size();
-                vec_size_ = d;
 
-                vec_ = weak_vector<T>{data_.data(), vec_size_};
+                vec_ = weak_vector<T>{data_.data(), d};
                 mat_ = weak_matrix<T>{data_.data(), d / sizes_.back(), sizes_.back()};
             }
         }
@@ -471,9 +466,8 @@ namespace la {
             data_ = std::move(that.data_);
             dim_ = that.dim_;
             sizes_ = std::move(that.sizes_);
-            vec_size_ = that.vec_size_;
-            vec_ = weak_vector<T>(data_.data(), vec_size_);
-            mat_ = weak_matrix<T>(data_.data(), vec_size_ / sizes_.back(), sizes_.back());
+            vec_ = weak_vector<T>(data_.data(), data_.size());
+            mat_ = weak_matrix<T>(data_.data(), data_.size() / sizes_.back(), sizes_.back());
 
             return *this;
         }
@@ -484,9 +478,8 @@ namespace la {
             data_ = that.data_;
             dim_ = that.dim_;
             sizes_ = that.sizes_;
-            vec_size_ = that.vec_size_;
-            vec_ = weak_vector<T>(data_.data(), vec_size_);
-            mat_ = weak_matrix<T>(data_.data(), vec_size_ / sizes_.back(), sizes_.back());
+            vec_ = weak_vector<T>(data_.data(), data_.size());
+            mat_ = weak_matrix<T>(data_.data(), data_.size() / sizes_.back(), sizes_.back());
 
             return *this;
         }
@@ -500,7 +493,7 @@ namespace la {
         template <class T>
         unsigned int tensor<T>::vec_size() const
         {
-            return vec_size_;
+            return data_.size();
         }
 
         template <class T>

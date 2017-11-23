@@ -34,6 +34,7 @@ namespace la {
 
     template <class T>
     struct tensor_like {
+
         virtual ~tensor_like()
         {}
 

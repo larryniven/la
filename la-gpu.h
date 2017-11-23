@@ -211,7 +211,6 @@ namespace la {
             vector<T> data_;
             std::vector<unsigned int> sizes_;
             unsigned int dim_;
-            unsigned int vec_size_;
 
             weak_vector<double> vec_;
             weak_matrix<double> mat_;

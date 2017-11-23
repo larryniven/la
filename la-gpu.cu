@@ -325,7 +325,7 @@ namespace la {
 
         void zero(tensor_like<double>& u)
         {
-            std::memset(u.data(), 0, u.vec_size() * sizeof(double));
+            cudaMemset(u.data(), 0, u.vec_size() * sizeof(double));
         }
 
         void axpy(tensor_like<double>& y, double a, tensor_like<double> const& x)
