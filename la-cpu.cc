@@ -26,7 +26,15 @@ namespace la {
         {
             assert(y.size() == x.size());
 
-            cblas_daxpy(y.size(), a, x.data(), 1, y.data(), 1);
+            // cblas_daxpy(y.size(), a, x.data(), 1, y.data(), 1);
+
+            unsigned int size = x.size();
+            double *y_data = y.data();
+            double const *x_data = x.data();
+
+            for (int i = 0; i < size; ++i) {
+                y_data[i] += a * x_data[i];
+            }
         }
 
         void emul(vector_like<double>& z,
