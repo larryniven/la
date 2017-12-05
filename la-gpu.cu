@@ -34,6 +34,8 @@ namespace la {
             }
         }
 
+        // device
+
         device device::d = device();
 
         device::device()
@@ -55,6 +57,71 @@ namespace la {
         cublasHandle_t& device::get_handle()
         {
             return get_instance().handle;
+        }
+
+        // mem_bank
+
+        mem_bank mem_bank::b = mem_bank();
+
+        mem_bank::mem_bank()
+            : used(0)
+        {
+            // cudaMalloc(&dev_ptr, 1000000000);
+        }
+
+        mem_bank::~mem_bank()
+        {
+            // cudaFree(dev_ptr);
+        }
+
+        mem_bank& mem_bank::get_instance()
+        {
+            return b;
+        }
+
+        void* mem_bank::alloc(size_t size)
+        {
+            if (used + size >= 2000000000) {
+                clean_up();
+
+                if (used + size >= 2000000000) {
+                    throw std::logic_error("not enough memory");
+                }
+            }
+
+            size_t shift = used;
+            used += size;
+
+            used_map[dev_ptr + shift] = size;
+
+            return dev_ptr + shift;
+        }
+
+        void mem_bank::free(void *p, size_t size)
+        {
+            if (((char*) p) + size == dev_ptr + used) {
+                used -= size;
+            }
+
+            used_map.erase((char*) p);
+        }
+
+        void mem_bank::clean_up()
+        {
+            char *max = 0;
+
+            for (auto& p: used_map) {
+                if (p.first + p.second > max) {
+                    max = p.first + p.second;
+                }
+            }
+
+            used = max - dev_ptr;
+        }
+
+        void mem_bank::clear()
+        {
+            used = 0;
         }
 
         // vector operations
@@ -306,6 +373,7 @@ namespace la {
             assert(result.rows() == a.size() && result.cols() == b.size());
 
             double alpha = 1;
+
             cublasDger(device::get_handle(), b.size(), a.size(),
                 &alpha, b.data(), 1, a.data(), 1,
                 result.data(), b.size());

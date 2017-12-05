@@ -28,6 +28,26 @@ namespace la {
             static cublasHandle_t& get_handle();
         };
 
+        struct mem_bank {
+            static mem_bank b;
+
+            std::unordered_map<char*, size_t> used_map;
+
+            char* dev_ptr;
+            size_t used;
+
+            mem_bank();
+            ~mem_bank();
+
+            static mem_bank& get_instance();
+
+            void* alloc(size_t size);
+            void free(void* dev_ptr, size_t size);
+            void clean_up();
+
+            void clear();
+        };
+
         template <class T>
         struct vector_like
             : public la::vector_like<T> {

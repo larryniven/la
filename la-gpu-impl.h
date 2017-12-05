@@ -14,6 +14,7 @@ namespace la {
         vector<T>::vector(vector_like<T> const& v)
         {
             cudaMalloc(&data_, v.size() * sizeof(T));
+            // data_ = (T*) mem_bank::get_instance().alloc(v.size() * sizeof(T));
             cudaMemcpy(data_, v.data(), v.size() * sizeof(T), cudaMemcpyDeviceToDevice);
             size_ = v.size();
         }
@@ -22,6 +23,7 @@ namespace la {
         vector<T>::vector(la::cpu::vector_like<T> const& v)
         {
             cudaMalloc(&data_, v.size() * sizeof(T));
+            // data_ = (T*) mem_bank::get_instance().alloc(v.size() * sizeof(T));
             cublasSetVector(v.size(), sizeof(T), v.data(), 1, data_, 1);
             size_ = v.size();
         }
@@ -30,12 +32,14 @@ namespace la {
         vector<T>::~vector()
         {
             cudaFree(data_);
+            // mem_bank::get_instance().free(data_, size_ * sizeof(T));
         }
 
         template <class T>
         vector<T>::vector(vector<T> const& v)
         {
             cudaMalloc(&data_, v.size() * sizeof(T));
+            // data_ = (T*) mem_bank::get_instance().alloc(v.size() * sizeof(T));
             cudaMemcpy(data_, v.data(), v.size() * sizeof(T), cudaMemcpyDeviceToDevice);
             size_ = v.size_;
         }
@@ -57,6 +61,8 @@ namespace la {
             } else {
                 cudaFree(data_);
                 cudaMalloc(&data_, v.size() * sizeof(T));
+                // mem_bank::get_instance().free(data_, v.size() * sizeof(T));
+                // data_ = (T*) mem_bank::get_instance().alloc(v.size() * sizeof(T));
                 cudaMemcpy(data_, v.data(), v.size() * sizeof(T), cudaMemcpyDeviceToDevice);
                 size_ = v.size();
             }
@@ -126,9 +132,17 @@ namespace la {
 
             cudaFree(data_);
             cudaMalloc(&data_, size * sizeof(T));
-            std::vector<T> v;
-            v.resize(size, value);
-            cublasSetVector(size, sizeof(T), v.data(), 1, data_, 1);
+            // mem_bank::get_instance().free(data_, size_ * sizeof(T));
+            // data_ = (T*) mem_bank::get_instance().alloc(size * sizeof(T));
+
+            if (value == 0) {
+                cudaMemset(data_, 0, size * sizeof(T));
+            } else {
+                std::vector<T> v;
+                v.resize(size, value);
+                cublasSetVector(size, sizeof(T), v.data(), 1, data_, 1);
+            }
+
             size_ = size;
         }
 
