@@ -3,7 +3,7 @@ NVCCFLAGS += -std=c++11 -I ../../ -L ../../ebt
 
 .PHONY: all clean
 
-all: test-la
+all: test-la test-mem-pool
 
 gpu: test-la-gpu
 
@@ -19,3 +19,6 @@ test-la-gpu.o: test-la-gpu.cu
 
 test-la-gpu: test-la-gpu.o
 	$(CXX) $(CXXFLAGS) -o $@ ../la-cpu.o ../la-gpu.o $^ -lblas -lcublas -lcudart -lebt
+
+test-mem-pool: ../mem-pool.o test-mem-pool.o
+	$(CXX) $(CXXFLAGS) -o $@ $^

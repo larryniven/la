@@ -23,3 +23,4 @@ la-gpu.o: la-gpu.cu
 
 la-cpu.o: la-cpu.h la-cpu-impl.h
 la-gpu.o: la-gpu.h la-gpu-impl.h
+mem-pool.o: mem-pool.h

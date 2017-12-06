@@ -8,6 +8,7 @@
 #include <vector>
 #include <cassert>
 #include "ebt/ebt.h"
+#include "la/mem-pool.h"
 
 namespace la {
 
@@ -24,28 +25,12 @@ namespace la {
 
             cublasHandle_t handle;
 
+            la::gpu::vector<double> *mem;
+            mem_pool *pool;
+
             static device& get_instance();
             static cublasHandle_t& get_handle();
-        };
-
-        struct mem_bank {
-            static mem_bank b;
-
-            std::unordered_map<char*, size_t> used_map;
-
-            char* dev_ptr;
-            size_t used;
-
-            mem_bank();
-            ~mem_bank();
-
-            static mem_bank& get_instance();
-
-            void* alloc(size_t size);
-            void free(void* dev_ptr, size_t size);
-            void clean_up();
-
-            void clear();
+            static mem_pool& get_mem_pool();
         };
 
         template <class T>
