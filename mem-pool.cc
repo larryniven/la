@@ -19,11 +19,6 @@ namespace la {
             block.resize((1L << (total_depth - 1)), -1);
         }
 
-        void mem_pool::status()
-        {
-            std::cout << "memmory available: " << (1L << (total_depth - 1 - lost[0] + base_power - 20)) << " MiB" << std::endl;
-        }
-
         void* mem_pool::malloc(size_t size)
         {
             long req = (size >> base_power) + (size % base_size > 0 ? 1 : 0);

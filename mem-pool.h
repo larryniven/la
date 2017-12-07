@@ -21,7 +21,6 @@ namespace la {
 
             mem_pool(void *dev_ptr, unsigned int base_power, unsigned int total_depth);
 
-            void status();
             void* malloc(size_t size);
             void free(void *p);
 
