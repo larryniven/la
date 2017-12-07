@@ -15,7 +15,7 @@ clean:
 libla.a: la-cpu.o
 	$(AR) rcs $@ $^
 
-liblagpu.a: la-cpu.o la-gpu.o
+liblagpu.a: la-cpu.o la-gpu.o mem-pool.o
 	$(AR) rcs $@ $^
 
 la-gpu.o: la-gpu.cu

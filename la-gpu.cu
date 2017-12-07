@@ -41,18 +41,17 @@ namespace la {
         device::device()
         {
             cublasCreate(&handle);
-            mem = new la::gpu::vector<double>();
 
-            // allocate 1GiB
-            mem->resize((1 << 27));
+            // allocate 4GiB
+            cudaMalloc(&mem, 1L << 32);
 
-            pool = new mem_pool(mem->data(), 10, 20);
+            pool = new mem_pool(mem, 10, 23);
         }
 
         device::~device()
         {
-            delete *pool;
-            delete *mem;
+            delete pool;
+            cudaFree(mem);
             cublasDestroy(handle);
             cudaDeviceReset();
         }

@@ -1,6 +1,7 @@
 #ifndef LA_MEM_POOL_H
 #define LA_MEM_POOL_H
 
+#include <cstring>
 #include <vector>
 
 namespace la {
@@ -15,17 +16,19 @@ namespace la {
             size_t base_size;
             char *dev_ptr;
 
-            std::vector<unsigned int> used;
-            std::vector<int> block;
+            std::vector<unsigned int> lost;
+            std::vector<long> block;
 
             mem_pool(void *dev_ptr, unsigned int base_power, unsigned int total_depth);
 
+            void status();
             void* malloc(size_t size);
             void free(void *p);
 
-            int left_child(int k);
-            int right_child(int k);
-            int parent(int k);
+            void update_parent(long k, unsigned int depth);
+            long left_child(long k);
+            long right_child(long k);
+            long parent(long k);
 
         };
 

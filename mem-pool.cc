@@ -1,6 +1,8 @@
 #include "la/mem-pool.h"
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
+#include <sstream>
 
 namespace la {
 
@@ -9,59 +11,63 @@ namespace la {
         mem_pool::mem_pool(void *dev_ptr, unsigned int base_power, unsigned int total_depth)
             : dev_ptr((char*) dev_ptr), base_power(base_power), total_depth(total_depth)
         {
-            base_size = (1 << base_power);
+            base_size = (1L << base_power);
 
-            // total blocks = 2^0 + 2^1 + ... + 2^(total_depth-1)
-            used.resize((1 << total_depth) - 1);
+            // total blocks = 2^0 + 2^1 + ... + 2^(total_depth-1) = 2^total_depth - 1
+            lost.resize((1L << total_depth) - 1);
 
-            block.resize((1 << (total_depth - 1)), -1);
+            block.resize((1L << (total_depth - 1)), -1);
+        }
+
+        void mem_pool::status()
+        {
+            std::cout << "memmory available: " << (1L << (total_depth - 1 - lost[0])) << std::endl;
         }
 
         void* mem_pool::malloc(size_t size)
         {
-            unsigned int req = (size >> base_power) + (size % base_size > 0 ? 1 : 0);
+            long req = (size >> base_power) + (size % base_size > 0 ? 1 : 0);
 
-            unsigned int block_size = (1 << (total_depth - 1));
-            unsigned int num_blocks = 1;
+            size_t block_size = (1L << (total_depth - 1));
+            long num_blocks = 1;
             unsigned int depth = 0;
 
             // find block k
 
-            unsigned int k = 0;
+            long k = 0;
 
-            while (k < used.size()) {
-                assert(k < (num_blocks << 1) - 1);
-
-                if (req <= block_size - used[k] && req > (block_size >> 1)) {
+            // (num_blocks << 1) - 1 is the first block of the next layer
+            while (k < (num_blocks << 1) - 1) {
+                if (req <= block_size && req > (block_size >> 1) && lost[k] == 0) {
                     break;
-                } else if (req < block_size) {
+                } else if (req < block_size && depth < total_depth - 1
+                        && req <= (block_size >> lost[k])) {
                     k = left_child(k);
                     block_size = (block_size >> 1);
-                    ++depth;
                     num_blocks = (num_blocks << 1);
+                    ++depth;
                 } else {
                     ++k;
                 }
             }
 
-            if (k == used.size()) {
-                throw std::logic_error("not enough memory");
+            if (k == (num_blocks << 1) - 1) {
+                std::ostringstream oss;
+                oss << "hitting the boundary k: " << k << " # blocks: "  << num_blocks << std::endl;
+                throw std::logic_error(oss.str());
             }
+
+            assert(lost[k] == 0);
+            lost[k] = total_depth - depth;
 
             // update parent
 
-            unsigned int k_up = k;
-
-            while (k_up != 0) {
-                used[k_up] += block_size;
-                k_up = parent(k_up);
-            }
-            used[k_up] += block_size;
+            update_parent(k, depth);
 
             // compute result
 
             unsigned int shift = (k - num_blocks + 1) << (total_depth - depth - 1);
-
+            assert(shift < block.size());
             assert(block[shift] == -1);
             block[shift] = k;
 
@@ -72,38 +78,75 @@ namespace la {
 
         void mem_pool::free(void *p)
         {
+            if (p == (void *) 0) {
+                return;
+            }
+
             unsigned int shift = (((char*)p) - dev_ptr) >> base_power;
 
-            unsigned int k = block[shift];
+            assert(shift < block.size());
+            assert(block[shift] != -1);
 
-            unsigned int block_size = (1 << (total_depth - 1));
-            unsigned int num_blocks = 1;
+            long k = block[shift];
+
+            size_t block_size = (1 << (total_depth - 1));
+            long num_blocks = 1;
+            unsigned int depth = 0;
 
             while (k >= (num_blocks << 1) - 1) {
                 num_blocks = (num_blocks << 1);
                 block_size = (block_size >> 1);
+                ++depth;
             }
 
-            while (k != 0) {
-                used[k] -= block_size;
-                k = parent(k);
-            }
+            assert(lost[k] == total_depth - depth);
+            lost[k] = 0;
 
-            used[k] -= block_size;
+            update_parent(k, depth);
+
             block[shift] = -1;
         }
 
-        int mem_pool::left_child(int k)
+        void mem_pool::update_parent(long k, unsigned int depth)
+        {
+            long k_up = k;
+            unsigned int depth_up = depth;
+
+            while (k_up > 0) {
+                k_up = parent(k_up);
+                --depth_up;
+
+                assert(lost[k_up] <= total_depth - depth_up);
+
+                unsigned int left_lost = lost[left_child(k_up)];
+                unsigned int right_lost = lost[right_child(k_up)];
+
+                unsigned int old_lost = lost[k_up];
+
+                if (left_lost == 0 && right_lost == 0) {
+                    lost[k_up] = 0;
+                } else {
+                    unsigned int cand = std::min(left_lost, right_lost) + 1;
+                    lost[k_up] = cand;
+                }
+
+                if (old_lost == lost[k_up]) {
+                    break;
+                }
+            }
+        }
+
+        long mem_pool::left_child(long k)
         {
             return (k << 1) + 1;
         }
 
-        int mem_pool::right_child(int k)
+        long mem_pool::right_child(long k)
         {
             return (k << 1) + 2;
         }
 
-        int mem_pool::parent(int k)
+        long mem_pool::parent(long k)
         {
             // note the integer div
 

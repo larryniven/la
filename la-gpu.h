@@ -17,6 +17,9 @@ namespace la {
         __global__ void print_vec(double const *p, int size);
         __global__ void print_mat(double const *p, int rows, int cols);
 
+        template <class T>
+        struct vector;
+
         struct device {
             static device d;
 
@@ -25,7 +28,7 @@ namespace la {
 
             cublasHandle_t handle;
 
-            la::gpu::vector<double> *mem;
+            double *mem;
             mem_pool *pool;
 
             static device& get_instance();
