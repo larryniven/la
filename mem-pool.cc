@@ -21,7 +21,7 @@ namespace la {
 
         void mem_pool::status()
         {
-            std::cout << "memmory available: " << (1L << (total_depth - 1 - lost[0])) << std::endl;
+            std::cout << "memmory available: " << (1L << (total_depth - 1 - lost[0] + base_power - 20)) << " MiB" << std::endl;
         }
 
         void* mem_pool::malloc(size_t size)
